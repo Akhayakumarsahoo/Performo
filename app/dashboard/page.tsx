@@ -5,15 +5,11 @@ import { useRouter } from "next/navigation";
 import { getAuth } from "@/lib/api";
 import { roleToDefaultPath } from "@/lib/useAuth";
 
-export default function Home() {
+export default function DashboardRouter() {
   const router = useRouter();
   useEffect(() => {
     const auth = getAuth();
-    if (auth?.user) {
-      router.replace(roleToDefaultPath(auth.user.role));
-    } else {
-      router.replace("/login");
-    }
+    router.replace(roleToDefaultPath(auth?.user.role));
   }, [router]);
   return null;
 }
