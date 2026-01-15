@@ -41,19 +41,19 @@ export default function EditProfilePage() {
           body: JSON.stringify({ name: form.companyName }),
         });
       }
-      
+
       // Also update the user in local storage
-      if(auth) {
+      if (auth) {
         const newAuth = {
-            ...auth,
-            user: {
-                ...auth.user,
-                name: form.name,
-                company: {
-                    ...auth.user.company,
-                    name: form.companyName
-                }
-            }
+          ...auth,
+          user: {
+            ...auth.user,
+            name: form.name,
+            company: {
+              ...auth.user.company,
+              name: form.companyName,
+            },
+          },
         };
         saveAuth(newAuth);
       }
@@ -74,7 +74,12 @@ export default function EditProfilePage() {
           <h1 className="text-lg font-semibold">Edit Profile</h1>
           <form className="mt-4 grid gap-3 sm:grid-cols-2" onSubmit={update}>
             <div className="sm:col-span-2">
-              <label htmlFor="name" className="block text-sm font-medium text-slate-700">Your Name</label>
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-slate-700"
+              >
+                Your Name
+              </label>
               <input
                 id="name"
                 placeholder="Your Name"
@@ -86,19 +91,29 @@ export default function EditProfilePage() {
             </div>
 
             <div className="sm:col-span-2">
-                <label htmlFor="email" className="block text-sm font-medium text-slate-700">Email</label>
-                <input
-                    id="email"
-                    type="email"
-                    className="mt-1 block w-full rounded-md border border-slate-300 bg-slate-100 px-3 py-2 text-slate-500 shadow-sm sm:text-sm"
-                    value={auth.user.email}
-                    readOnly
-                />
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-slate-700"
+              >
+                Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                className="mt-1 block w-full rounded-md border border-slate-300 bg-slate-100 px-3 py-2 text-slate-500 shadow-sm sm:text-sm"
+                value={auth.user.email}
+                readOnly
+              />
             </div>
 
             {auth.user.role === "owner" && (
               <div className="sm:col-span-2">
-                <label htmlFor="companyName" className="block text-sm font-medium text-slate-700">Company Name</label>
+                <label
+                  htmlFor="companyName"
+                  className="block text-sm font-medium text-slate-700"
+                >
+                  Company Name
+                </label>
                 <input
                   id="companyName"
                   placeholder="Company Name"
@@ -116,7 +131,13 @@ export default function EditProfilePage() {
             </button>
           </form>
           {message && (
-            <div className={`mt-2 text-sm ${message.includes('success') ? 'text-green-600' : 'text-red-600'}`}>{message}</div>
+            <div
+              className={`mt-2 text-sm ${
+                message.includes("success") ? "text-green-600" : "text-red-600"
+              }`}
+            >
+              {message}
+            </div>
           )}
         </Card>
       </main>

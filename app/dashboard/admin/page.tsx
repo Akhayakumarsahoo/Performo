@@ -84,11 +84,15 @@ export default function AdminDashboard() {
                 {s.achievedUnapproved > 0 && (
                   <div className="mt-2 rounded-md bg-amber-50 px-2 py-1 text-xs">
                     <div className="flex items-center gap-1">
-                      <span className="text-amber-600">⏳ Pending Approval:</span>
+                      <span className="text-amber-600">
+                        ⏳ Pending Approval:
+                      </span>
                       <span className="font-medium text-amber-800">
                         ₹{s.achievedUnapproved.toLocaleString()}
                       </span>
-                      <span className="text-amber-600">({s.pendingApprovals} entries)</span>
+                      <span className="text-amber-600">
+                        ({s.pendingApprovals} entries)
+                      </span>
                     </div>
                   </div>
                 )}
