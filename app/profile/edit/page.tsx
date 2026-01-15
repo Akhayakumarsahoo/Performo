@@ -28,15 +28,13 @@ export default function EditProfilePage() {
     e.preventDefault();
     setMessage(null);
     try {
-      // There is no endpoint to update user name.
-      // I will assume there is one at PUT /profile
       await apiFetch("/profile", {
         method: "PUT",
         body: JSON.stringify({ name: form.name }),
       });
 
       if (auth?.user.role === "owner") {
-        await apiFetch("/admin/company", {
+        await apiFetch("/profile/company", {
           method: "PUT",
           body: JSON.stringify({ name: form.companyName }),
         });
