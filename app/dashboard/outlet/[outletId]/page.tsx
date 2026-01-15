@@ -14,7 +14,7 @@ import {
 import useAuth from "@/lib/useAuth";
 import { IOutlet, IDailySales } from "@/lib/definitions";
 import { Card } from "@/components/Card";
-import { api } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
 
 ChartJS.register(
   CategoryScale,
@@ -37,10 +37,10 @@ const OutletPage = () => {
   useEffect(() => {
     const fetchOutletData = async () => {
       try {
-        const response = await api.get(`/dashboard/outlet/${outletId}`);
-        setOutlet(response.data.outlet);
-        setSales(response.data.sales);
-        setStats(response.data.stats);
+        const response = await apiFetch(`/dashboard/outlet/${outletId}`);
+        setOutlet(response.outlet);
+        setSales(response.sales);
+        setStats(response.stats);
       } catch (error) {
         console.error("Error fetching outlet data:", error);
       } finally {
