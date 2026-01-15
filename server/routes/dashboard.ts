@@ -46,4 +46,19 @@ router.get("/admin", async (req, res, next) => {
   }
 });
 
+router.get("/outlet/:outletId", async (req, res, next) => {
+  try {
+    const { outletId } = req.params;
+    const outlet = await Outlet.findOne({ _id: outletId, companyId: req.user!.companyId }).lean();
+    if (!outlet) {
+      return res.status(404).json({ message: "Outlet not found" });
+    }
+    const sales = await DailySales.find({ outletId, companyId: req.user!.companyId }).sort({ date: -1 }).lean();
+    const stats = await computeOutletStats(req.user!.companyId, outletId);
+    res.json({ outlet, sales, stats });
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;

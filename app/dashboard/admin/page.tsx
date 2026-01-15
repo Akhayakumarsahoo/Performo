@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import NavBar from "@/components/NavBar";
 import { Card } from "@/components/Card";
 import { apiFetch } from "@/lib/api";
@@ -59,45 +60,47 @@ export default function AdminDashboard() {
 
         <div className="grid gap-3 sm:grid-cols-2">
           {data.stats.map((s: any) => (
-            <Card key={s.outletId}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-xs uppercase text-slate-500">
-                    {s.month}
+            <Link href={`/dashboard/outlet/${s.outletId}`} key={s.outletId}>
+              <Card>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-xs uppercase text-slate-500">
+                      {s.month}
+                    </div>
+                    <div className="text-lg font-semibold">{s.name}</div>
                   </div>
-                  <div className="text-lg font-semibold">{s.name}</div>
-                </div>
-                <div className="text-right text-sm">
-                  <div className="font-semibold">{s.percent.toFixed(1)}%</div>
-                  <div className="text-slate-500">
-                    ₹{s.achieved.toLocaleString()} / ₹
-                    {s.target.toLocaleString()}
-                  </div>
-                </div>
-              </div>
-              <div className="mt-2 flex gap-2 text-xs text-slate-600">
-                <span>Remaining: ₹{s.remainingTarget.toLocaleString()}</span>
-                <span>| Forecast: ₹{s.forecastedEnd.toLocaleString()}</span>
-              </div>
-              {s.achievedUnapproved > 0 && (
-                <div className="mt-2 rounded-md bg-amber-50 px-2 py-1 text-xs">
-                  <div className="flex items-center gap-1">
-                    <span className="text-amber-600">⏳ Pending Approval:</span>
-                    <span className="font-medium text-amber-800">
-                      ₹{s.achievedUnapproved.toLocaleString()}
-                    </span>
-                    <span className="text-amber-600">({s.pendingApprovals} entries)</span>
+                  <div className="text-right text-sm">
+                    <div className="font-semibold">{s.percent.toFixed(1)}%</div>
+                    <div className="text-slate-500">
+                      ₹{s.achieved.toLocaleString()} / ₹
+                      {s.target.toLocaleString()}
+                    </div>
                   </div>
                 </div>
-              )}
-              {s.alerts?.length > 0 && (
-                <ul className="mt-2 list-disc space-y-1 pl-4 text-xs text-red-600">
-                  {s.alerts.map((a: string) => (
-                    <li key={a}>{a}</li>
-                  ))}
-                </ul>
-              )}
-            </Card>
+                <div className="mt-2 flex gap-2 text-xs text-slate-600">
+                  <span>Remaining: ₹{s.remainingTarget.toLocaleString()}</span>
+                  <span>| Forecast: ₹{s.forecastedEnd.toLocaleString()}</span>
+                </div>
+                {s.achievedUnapproved > 0 && (
+                  <div className="mt-2 rounded-md bg-amber-50 px-2 py-1 text-xs">
+                    <div className="flex items-center gap-1">
+                      <span className="text-amber-600">⏳ Pending Approval:</span>
+                      <span className="font-medium text-amber-800">
+                        ₹{s.achievedUnapproved.toLocaleString()}
+                      </span>
+                      <span className="text-amber-600">({s.pendingApprovals} entries)</span>
+                    </div>
+                  </div>
+                )}
+                {s.alerts?.length > 0 && (
+                  <ul className="mt-2 list-disc space-y-1 pl-4 text-xs text-red-600">
+                    {s.alerts.map((a: string) => (
+                      <li key={a}>{a}</li>
+                    ))}
+                  </ul>
+                )}
+              </Card>
+            </Link>
           ))}
         </div>
       </main>
