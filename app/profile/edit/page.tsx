@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useEffect, useState } from "react";
 import NavBar from "@/components/NavBar";
@@ -19,7 +19,7 @@ export default function EditProfilePage() {
     if (auth) {
       setForm({
         name: auth.user.name,
-        companyName: auth.user.company.name,
+        companyName: auth.user.company?.name || '',
       });
     }
   }, [auth]);
@@ -48,7 +48,7 @@ export default function EditProfilePage() {
                 ...auth.user,
                 name: form.name,
                 company: {
-                    ...auth.user.company,
+                    ...(auth.user.company || {}),
                     name: form.companyName
                 }
             }
