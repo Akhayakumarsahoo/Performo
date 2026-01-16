@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import NavBar from "@/components/NavBar";
 import { Card } from "@/components/Card";
 import { apiFetch } from "@/lib/api";
-import { useAuth } from "@/lib/useAuth";
+import { useAuthState } from "@/lib/useAuth";
 
 type Outlet = {
   _id: string;
@@ -16,7 +16,7 @@ type Outlet = {
 };
 
 export default function AdminOutletsPage() {
-  const { user } = useAuth();
+  const { user } = useAuthState();
   const [items, setItems] = useState<Outlet[]>([]);
   const [companySalespersons, setCompanySalespersons] = useState<string>("");
   const [form, setForm] = useState({
@@ -36,14 +36,21 @@ export default function AdminOutletsPage() {
   const isOwner = user?.role === "owner";
 
   const load = async () => {
-    if (!isOwner) return;
+    if (!isOwner) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
-    const data = await apiFetch<Outlet[]>("/admin/outlets");
-    const company = await apiFetch<{ salespersons: string[] }>(
-      "/admin/company/salespersons"
-    );
-    setItems(data);
-    setCompanySalespersons((company.salespersons || []).join(", "));
+    try {
+      const data = await apiFetch<Outlet[]>("/admin/outlets");
+      const company = await apiFetch<{ salespersons: string[] }>(
+        "/admin/company/salespersons"
+      );
+      setItems(data);
+      setCompanySalespersons((company.salespersons || []).join(", "));
+    } catch (err: any) {
+      setMessage(err.message || "Failed to load data");
+    }
     setLoading(false);
   };
 
@@ -256,7 +263,7 @@ export default function AdminOutletsPage() {
             </Card>
           </>
         ) : (
-          <div className="text-center text-slate-500">You do not have permission to view this page.</div>
+          <div className="text-center text-slate-500 pt-10">You do not have permission to view this page.</div>
         )}
       </main>
 
