@@ -98,6 +98,21 @@ router.patch(
   }
 );
 
+router.delete("/outlets/:id", async (req, res, next) => {
+  try {
+    const outlet = await Outlet.findOneAndDelete({
+      _id: req.params.id,
+      companyId: req.user!.companyId,
+    });
+    if (!outlet) {
+      return res.status(404).json({ message: "Outlet not found" });
+    }
+    res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+});
+
 // No user management routes needed since there's only one owner per company
 
 export default router;
