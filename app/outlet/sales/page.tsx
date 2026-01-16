@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { apiBase } from "@/lib/api";
-import { getOutletSession, clearOutletSession } from "@/lib/outlet";
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { apiBase } from '@/lib/api';
+import { getOutletSession, clearOutletSession } from '@/lib/outlet';
 
 interface OutletSalesPayload {
   date: string;
@@ -16,18 +16,18 @@ interface OutletSalesPayload {
 
 export default function OutletSalesPage() {
   const router = useRouter();
-  const [date, setDate] = useState<string>("");
+  const [date, setDate] = useState<string>('');
   const [totalSales, setTotalSales] = useState<number>(0);
   const [payments, setPayments] = useState({ cash: 0, upi: 0, card: 0 });
-  const [enteredByName, setEnteredByName] = useState("");
+  const [enteredByName, setEnteredByName] = useState('');
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [outletName, setOutletName] = useState<string>("");
+  const [outletName, setOutletName] = useState<string>('');
 
   useEffect(() => {
     const session = getOutletSession();
     if (!session) {
-      router.replace("/outlet/login");
+      router.replace('/outlet/login');
       return;
     }
     setOutletName(session.outlet.name);
@@ -42,7 +42,7 @@ export default function OutletSalesPage() {
     try {
       const session = getOutletSession();
       if (!session) {
-        router.replace("/outlet/login");
+        router.replace('/outlet/login');
         return;
       }
       const payload: OutletSalesPayload = {
@@ -52,25 +52,25 @@ export default function OutletSalesPage() {
         enteredByName,
       };
       const res = await fetch(`${apiBase()}/outlet/sales`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${session.token}`,
         },
         body: JSON.stringify(payload),
       });
       if (res.status === 401 || res.status === 403) {
         clearOutletSession();
-        router.replace("/outlet/login");
+        router.replace('/outlet/login');
         return;
       }
       if (!res.ok) {
         const text = await res.text();
-        throw new Error(text || "Failed to submit");
+        throw new Error(text || 'Failed to submit');
       }
-      setMessage("Sales report submitted.");
+      setMessage('Sales report submitted.');
     } catch (err: any) {
-      setMessage(err.message || "Failed to submit");
+      setMessage(err.message || 'Failed to submit');
     } finally {
       setLoading(false);
     }
@@ -85,7 +85,7 @@ export default function OutletSalesPage() {
           <div>
             <h1 className="text-lg font-semibold">Outlet Sales Entry</h1>
             <p className="text-xs text-slate-500">
-              Outlet: <span className="font-medium">{outletName || "Loading..."}</span>
+              Outlet: <span className="font-medium">{outletName || 'Loading...'}</span>
             </p>
           </div>
           <button
@@ -93,7 +93,7 @@ export default function OutletSalesPage() {
             type="button"
             onClick={() => {
               clearOutletSession();
-              router.push("/outlet/login");
+              router.push('/outlet/login');
             }}
           >
             Logout
@@ -133,7 +133,7 @@ export default function OutletSalesPage() {
             />
           </label>
           <div className="grid gap-3 sm:grid-cols-3">
-            {(["cash", "upi", "card"] as const).map((key) => (
+            {(['cash', 'upi', 'card'] as const).map((key) => (
               <label key={key} className="text-sm text-slate-600">
                 {key.toUpperCase()} (₹)
                 <input
@@ -162,9 +162,9 @@ export default function OutletSalesPage() {
           <button
             type="submit"
             disabled={loading || !enteredByName || totalSales !== sumPayments}
-            className="w-full rounded-md bg-emerald-500 py-2 font-semibold text-white hover:bg-emerald-600 disabled:opacity-60"
+            className="w-full rounded-md bg-black py-2 font-semibold text-white hover:bg-gray-800 disabled:opacity-60"
           >
-            {loading ? "Saving..." : "Submit"}
+            {loading ? 'Saving...' : 'Submit'}
           </button>
         </form>
       </div>

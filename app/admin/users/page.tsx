@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import NavBar from "@/components/NavBar";
-import { Card } from "@/components/Card";
-import { apiFetch } from "@/lib/api";
-import { useAuthState } from "@/lib/useAuth";
+import { useEffect, useState } from 'react';
+import NavBar from '@/components/NavBar';
+import { Card } from '@/components/Card';
+import { apiFetch } from '@/lib/api';
+import { useAuthState } from '@/lib/useAuth';
 
 type User = {
   _id: string;
@@ -17,15 +17,15 @@ export default function AdminUsersPage() {
   const { user } = useAuthState();
   const [users, setUsers] = useState<User[]>([]);
   const [form, setForm] = useState({
-    name: "",
-    email: "",
-    password: "",
-    role: "manager",
+    name: '',
+    email: '',
+    password: '',
+    role: 'manager',
   });
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const isOwner = user?.role === "owner";
+  const isOwner = user?.role === 'owner';
 
   const load = async () => {
     if (!isOwner) {
@@ -34,10 +34,10 @@ export default function AdminUsersPage() {
     }
     setLoading(true);
     try {
-      const data = await apiFetch<User[]>("/admin/users");
+      const data = await apiFetch<User[]>('/admin/users');
       setUsers(data);
     } catch (err: any) {
-      setMessage(err.message || "Failed to load users");
+      setMessage(err.message || 'Failed to load users');
     }
     setLoading(false);
   };
@@ -50,15 +50,15 @@ export default function AdminUsersPage() {
     e.preventDefault();
     setMessage(null);
     try {
-      await apiFetch("/admin/users", {
-        method: "POST",
+      await apiFetch('/admin/users', {
+        method: 'POST',
         body: JSON.stringify(form),
       });
-      setMessage("User created");
-      setForm({ name: "", email: "", password: "", role: "manager" });
+      setMessage('User created');
+      setForm({ name: '', email: '', password: '', role: 'manager' });
       await load();
     } catch (err: any) {
-      setMessage(err.message || "Failed");
+      setMessage(err.message || 'Failed');
     }
   };
 
@@ -101,7 +101,7 @@ export default function AdminUsersPage() {
                 >
                   <option value="manager">Manager</option>
                 </select>
-                <button className="rounded-md bg-emerald-500 py-2 text-white font-semibold sm:col-span-2">
+                <button className="rounded-md bg-black py-2 text-white font-semibold sm:col-span-2">
                   Create
                 </button>
               </form>

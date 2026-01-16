@@ -1,7 +1,7 @@
-"use client";
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
-import { Bar } from "react-chartjs-2";
+'use client';
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
+import { Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -10,11 +10,11 @@ import {
   Title,
   Tooltip,
   Legend,
-} from "chart.js";
-import { useAuthState } from "@/lib/useAuth";
-import { IOutlet, IDailySales } from "@/lib/definitions";
-import { Card } from "@/components/Card";
-import { apiFetch } from "@/lib/api";
+} from 'chart.js';
+import { useAuthState } from '@/lib/useAuth';
+import { IOutlet, IDailySales } from '@/lib/definitions';
+import { Card } from '@/components/Card';
+import { apiFetch } from '@/lib/api';
 
 ChartJS.register(
   CategoryScale,
@@ -42,7 +42,7 @@ const OutletPage = () => {
         setSales(response.sales);
         setStats(response.stats);
       } catch (error) {
-        console.error("Error fetching outlet data:", error);
+        console.error('Error fetching outlet data:', error);
       } finally {
         setLoading(false);
       }
@@ -65,9 +65,9 @@ const OutletPage = () => {
     labels: sales.map((s) => new Date(s.date).toLocaleDateString()),
     datasets: [
       {
-        label: "Daily Sales",
+        label: 'Daily Sales',
         data: sales.map((s) => s.totalSales),
-        backgroundColor: "rgba(75, 192, 192, 0.6)",
+        backgroundColor: 'rgba(128, 128, 128, 0.6)',
       },
     ],
   };

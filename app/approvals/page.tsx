@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import NavBar from "@/components/NavBar";
-import { Card } from "@/components/Card";
-import { apiFetch } from "@/lib/api";
-import { useRequireAuth } from "@/lib/useAuth";
+import { useEffect, useState } from 'react';
+import NavBar from '@/components/NavBar';
+import { Card } from '@/components/Card';
+import { apiFetch } from '@/lib/api';
+import { useRequireAuth } from '@/lib/useAuth';
 
 type Sale = {
   _id: string;
@@ -26,10 +26,10 @@ export default function ApprovalsPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await apiFetch<Sale[]>("/sales");
+      const res = await apiFetch<Sale[]>('/sales');
       setItems(res.filter((s) => !s.approved));
     } catch (err: any) {
-      setError(err.message || "Failed to load");
+      setError(err.message || 'Failed to load');
     } finally {
       setLoading(false);
     }
@@ -43,13 +43,13 @@ export default function ApprovalsPage() {
     setActionMessage(null);
     try {
       await apiFetch(`/sales/${id}/approve`, {
-        method: "POST",
+        method: 'POST',
         body: JSON.stringify({}),
       });
-      setActionMessage("Approved");
+      setActionMessage('Approved');
       await load();
     } catch (err: any) {
-      setActionMessage(err.message || "Failed");
+      setActionMessage(err.message || 'Failed');
     }
   };
 
@@ -85,7 +85,7 @@ export default function ApprovalsPage() {
               </div>
               <button
                 onClick={() => approve(s._id)}
-                className="mt-3 w-full rounded-md bg-emerald-500 py-2 text-sm font-semibold text-white hover:bg-emerald-600"
+                className="mt-3 w-full rounded-md bg-black py-2 text-sm font-semibold text-white hover:bg-gray-800"
               >
                 Approve
               </button>

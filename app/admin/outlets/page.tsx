@@ -90,15 +90,16 @@ export default function AdminOutletsPage() {
     if (!editingOutlet) return;
     setMessage(null);
     try {
-      await apiFetch(`/admin/outlets/${editingOutlet._id}`, {
+      const { _id, ...updateData } = editingOutlet;
+      await apiFetch(`/admin/outlets/${_id}`, {
         method: 'PATCH',
-        body: JSON.stringify(editingOutlet),
+        body: JSON.stringify(updateData),
       });
       setMessage('Outlet updated');
       setEditingOutlet(null);
       await load();
     } catch (err: any) {
-      setMessage(err.message || 'Failed');
+      setMessage(err.message || 'Failed to update');
     }
   };
 
@@ -113,7 +114,7 @@ export default function AdminOutletsPage() {
       setOutletToDelete(null);
       await load();
     } catch (err: any) {
-      setMessage(err.message || 'Failed');
+      setMessage(err.message || 'Failed to delete');
     }
   };
 
@@ -163,7 +164,7 @@ export default function AdminOutletsPage() {
             {isOwner && (
               <button
                 onClick={() => setShowCreateForm(!showCreateForm)}
-                className="rounded-md bg-emerald-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-600"
+                className="rounded-md bg-black px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-800"
               >
                 {showCreateForm ? 'Close' : '➕ Create Outlet'}
               </button>
@@ -218,7 +219,7 @@ export default function AdminOutletsPage() {
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
                 required
               />
-              <button className="rounded-md bg-emerald-500 py-2 font-semibold text-white sm:col-span-2">
+              <button className="rounded-md bg-black py-2 font-semibold text-white sm:col-span-2">
                 Create
               </button>
             </form>
@@ -273,7 +274,7 @@ export default function AdminOutletsPage() {
               />
               <button
                 type="submit"
-                className="rounded-md bg-emerald-500 py-2 px-4 font-semibold text-white"
+                className="rounded-md bg-black py-2 px-4 font-semibold text-white"
               >
                 Add
               </button>
@@ -367,7 +368,7 @@ export default function AdminOutletsPage() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 rounded-md bg-emerald-500 px-4 py-2 font-medium text-white hover:bg-emerald-600"
+                  className="flex-1 rounded-md bg-black px-4 py-2 font-medium text-white hover:bg-gray-800"
                 >
                   Save Changes
                 </button>
