@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { requireAuth } from "../middleware/auth";
-import { computeOutletStats } from "../services/performance";
+import { computeOutletStats, getSalesReport } from "../services/performance";
 import { DailySales } from "../models/DailySales";
 import { Outlet } from "../models/Outlet";
 
@@ -27,9 +27,19 @@ router.get("/manager", async (req, res, next) => {
 
 router.get("/admin", async (req, res, next) => {
   try {
+    const { startDate, endDate } = req.query;
     const outlets = await Outlet.find({ companyId: req.user!.companyId, active: true }).lean();
     const stats = (
-      await Promise.all(outlets.map((o) => computeOutletStats(req.user!.companyId, o._id.toString())))
+      await Promise.all(
+        outlets.map((o) =>
+          computeOutletStats(
+            req.user!.companyId,
+            o._id.toString(),
+            startDate ? new Date(startDate as string) : new Date(),
+            endDate ? new Date(endDate as string) : undefined
+          )
+        )
+      )
     ).filter(Boolean);
     const totals = stats.reduce(
       (acc, s: any) => {
@@ -41,6 +51,23 @@ router.get("/admin", async (req, res, next) => {
     );
     const percent = totals.target > 0 ? (totals.achieved / totals.target) * 100 : 0;
     res.json({ stats, totals: { ...totals, percent } });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get("/sales-report", async (req, res, next) => {
+  try {
+    const { startDate, endDate } = req.query;
+    if (!startDate || !endDate) {
+      return res.status(400).json({ message: "Start and end dates are required" });
+    }
+    const report = await getSalesReport(
+      req.user!.companyId,
+      new Date(startDate as string),
+      new Date(endDate as string)
+    );
+    res.json(report);
   } catch (error) {
     next(error);
   }

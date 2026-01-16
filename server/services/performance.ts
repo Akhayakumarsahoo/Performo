@@ -42,32 +42,72 @@ function evaluateAlerts(stats: OutletStats) {
   return alerts;
 }
 
-export async function computeOutletStats(companyId: string, outletId: string, date = new Date()): Promise<OutletStats | null> {
+export async function getSalesReport(
+  companyId: string,
+  startDate: Date,
+  endDate: Date
+) {
+  const sales = await DailySales.find({
+    companyId,
+    date: { $gte: startDate, $lte: endDate },
+    approved: true,
+  }).lean();
+
+  const totalSales = sales.reduce((sum, s) => sum + s.totalSales, 0);
+  const totalTransactions = sales.length;
+  const avgTransactionValue = totalTransactions > 0 ? totalSales / totalTransactions : 0;
+
+  const salesByDay = sales.reduce((acc, s) => {
+    const date = s.date.toISOString().split("T")[0];
+    if (!acc[date]) {
+      acc[date] = { date, totalSales: 0, totalTransactions: 0 };
+    }
+    acc[date].totalSales += s.totalSales;
+    acc[date].totalTransactions += 1;
+    return acc;
+  }, {} as Record<string, { date: string; totalSales: number; totalTransactions: number }>);
+
+  return {
+    totalSales,
+    totalTransactions,
+    avgTransactionValue,
+    salesByDay: Object.values(salesByDay),
+  };
+}
+
+export async function computeOutletStats(
+  companyId: string,
+  outletId: string,
+  date: Date = new Date(),
+  endDate?: Date
+): Promise<OutletStats | null> {
   const outlet = await Outlet.findOne({ _id: outletId, companyId });
   if (!outlet) return null;
 
   const { start, end } = getMonthRange(date);
   const monthKey = getMonthKey(date);
-  
+
+  const finalEndDate = endDate || end;
+
   // Get approved sales
   const approvedSales = await DailySales.find({
     companyId,
     outletId,
     approved: true,
-    date: { $gte: start, $lte: end },
+    date: { $gte: start, $lte: finalEndDate },
   }).lean();
-  
+
   // Get unapproved sales
   const unapprovedSales = await DailySales.find({
     companyId,
     outletId,
     approved: false,
-    date: { $gte: start, $lte: end },
+    date: { $gte: start, $lte: finalEndDate },
   }).lean();
 
   const achieved = approvedSales.reduce((sum, s) => sum + (s.totalSales || 0), 0);
   const achievedUnapproved = unapprovedSales.reduce((sum, s) => sum + (s.totalSales || 0), 0);
-  
+
   const payments = approvedSales.reduce(
     (acc, s) => ({
       cash: acc.cash + s.payments.cash,
@@ -76,7 +116,7 @@ export async function computeOutletStats(companyId: string, outletId: string, da
     }),
     { cash: 0, upi: 0, card: 0 }
   );
-  
+
   const paymentsUnapproved = unapprovedSales.reduce(
     (acc, s) => ({
       cash: acc.cash + s.payments.cash,
