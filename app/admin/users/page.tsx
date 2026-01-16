@@ -1,13 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import NavBar from "@/components/NavBar";
 import { Card } from "@/components/Card";
 import { apiFetch } from "@/lib/api";
 import { useRequireAuth } from "@/lib/useAuth";
 
+type User = {
+  _id: string;
+  name: string;
+  email: string;
+  role: string;
+};
+
 export default function AdminUsersPage() {
   useRequireAuth();
+  const [users, setUsers] = useState<User[]>([]);
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -15,6 +23,22 @@ export default function AdminUsersPage() {
     role: "manager",
   });
   const [message, setMessage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const data = await apiFetch<User[]>("/admin/users");
+      setUsers(data);
+    } catch (err: any) {
+      setMessage(err.message || "Failed to load users");
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    load();
+  }, []);
 
   const create = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,6 +50,7 @@ export default function AdminUsersPage() {
       });
       setMessage("User created");
       setForm({ name: "", email: "", password: "", role: "manager" });
+      await load();
     } catch (err: any) {
       setMessage(err.message || "Failed");
     }
@@ -76,6 +101,20 @@ export default function AdminUsersPage() {
           {message && (
             <div className="mt-2 text-sm text-slate-600">{message}</div>
           )}
+        </Card>
+
+        <Card>
+          <h1 className="text-lg font-semibold">Existing Users</h1>
+          {loading && <div className="mt-2">Loading...</div>}
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {users.map((user) => (
+              <div key={user._id} className="rounded-md border border-slate-200 p-4">
+                <div className="font-semibold">{user.name}</div>
+                <div className="text-sm text-slate-500">{user.email}</div>
+                <div className="text-sm text-slate-500">{user.role}</div>
+              </div>
+            ))}
+          </div>
         </Card>
       </main>
     </div>

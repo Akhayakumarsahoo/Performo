@@ -113,6 +113,28 @@ router.delete("/outlets/:id", async (req, res, next) => {
   }
 });
 
-// No user management routes needed since there's only one owner per company
+router.post("/users", async (req, res, next) => {
+  try {
+    const { password, ...rest } = req.body;
+    const passwordHash = await hashPassword(password);
+    const user = await User.create({
+      ...rest,
+      passwordHash,
+      companyId: req.user!.companyId,
+    });
+    res.status(201).json(user);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get("/users", async (req, res, next) => {
+  try {
+    const users = await User.find({ companyId: req.user!.companyId }).lean();
+    res.json(users);
+  } catch (error) {
+    next(error);
+  }
+});
 
 export default router;
