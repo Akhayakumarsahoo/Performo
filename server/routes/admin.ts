@@ -24,15 +24,33 @@ router.get("/company/salespersons", async (req, res, next) => {
   }
 });
 
-router.put("/company/salespersons", async (req, res, next) => {
+router.post("/company/salespersons", requireOwnerAuth, async (req, res, next) => {
   try {
-    const { salespersons } = req.body as { salespersons?: string[] };
-    if (!Array.isArray(salespersons)) {
-      return res.status(400).json({ message: "salespersons must be an array of strings" });
+    const { salesperson } = req.body as { salesperson?: string };
+    if (!salesperson) {
+      return res.status(400).json({ message: "salesperson is required" });
     }
     const company = await Company.findOneAndUpdate(
       { _id: req.user!.companyId },
-      { $set: { salespersons } },
+      { $addToSet: { salespersons: salesperson } },
+      { new: true }
+    ).lean();
+    if (!company) return res.status(404).json({ message: "Company not found" });
+    res.json({ salespersons: company.salespersons || [] });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.delete("/company/salespersons", requireOwnerAuth, async (req, res, next) => {
+  try {
+    const { salesperson } = req.body as { salesperson?: string };
+    if (!salesperson) {
+      return res.status(400).json({ message: "salesperson is required" });
+    }
+    const company = await Company.findOneAndUpdate(
+      { _id: req.user!.companyId },
+      { $pull: { salespersons: salesperson } },
       { new: true }
     ).lean();
     if (!company) return res.status(404).json({ message: "Company not found" });
@@ -134,7 +152,7 @@ router.post("/users", requireOwnerAuth, async (req, res, next) => {
   }
 });
 
-router.get("/users", async (req, res, next) => {
+router.get("/users", requireOwnerAuth, async (req, res, next) => {
   try {
     const users = await User.find({ companyId: req.user!.companyId }).lean();
     res.json(users);
