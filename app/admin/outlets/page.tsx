@@ -82,7 +82,7 @@ export default function AdminOutletsPage() {
     setMessage(null);
     try {
       await apiFetch(`/admin/outlets/${editingOutlet._id}`, {
-        method: "PUT",
+        method: "PATCH",
         body: JSON.stringify(editingOutlet),
       });
       setMessage("Outlet updated");
