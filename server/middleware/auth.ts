@@ -2,13 +2,11 @@ import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import env from "../config/env";
 
-export type AuthCompany = {
-  companyId: string;
-};
-
 export type AuthUser = {
   userId: string;
   companyId: string;
+  role: "owner" | "manager";
+  outletId?: string;
 };
 
 export type OutletAuth = {
@@ -19,7 +17,6 @@ export type OutletAuth = {
 
 declare module "express-serve-static-core" {
   interface Request {
-    company?: AuthCompany;
     user?: AuthUser;
     outlet?: OutletAuth;
   }
@@ -43,7 +40,13 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
     return res.status(401).json({ message: "Invalid or expired token" });
   }
 }
-// All authenticated users have full access to their company's data
+
+export function requireOwnerAuth(req: Request, res: Response, next: NextFunction) {
+  if (!req.user || req.user.role !== "owner") {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+  next();
+}
 
 export function requireOutletAuth(
   req: Request,
@@ -61,7 +64,6 @@ export function requireOutletAuth(
 
   try {
     const decoded = jwt.verify(jwtToken, env.JWT_SECRET) as OutletAuth;
-    // Basic shape check
     if (!decoded.outletId || !decoded.companyId || !decoded.deviceId) {
       return res.status(401).json({ message: "Invalid outlet token" });
     }

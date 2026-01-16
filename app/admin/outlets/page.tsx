@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import NavBar from "@/components/NavBar";
 import { Card } from "@/components/Card";
 import { apiFetch } from "@/lib/api";
-import { useRequireAuth } from "@/lib/useAuth";
+import { useAuth } from "@/lib/useAuth";
 
 type Outlet = {
   _id: string;
@@ -16,7 +16,7 @@ type Outlet = {
 };
 
 export default function AdminOutletsPage() {
-  useRequireAuth(); // Redirects to login if not authenticated
+  const { user } = useAuth();
   const [items, setItems] = useState<Outlet[]>([]);
   const [companySalespersons, setCompanySalespersons] = useState<string>("");
   const [form, setForm] = useState({
@@ -33,7 +33,10 @@ export default function AdminOutletsPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
 
+  const isOwner = user?.role === "owner";
+
   const load = async () => {
+    if (!isOwner) return;
     setLoading(true);
     const data = await apiFetch<Outlet[]>("/admin/outlets");
     const company = await apiFetch<{ salespersons: string[] }>(
@@ -46,7 +49,7 @@ export default function AdminOutletsPage() {
 
   useEffect(() => {
     load();
-  }, []);
+  }, [isOwner]);
 
   const create = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -131,124 +134,130 @@ export default function AdminOutletsPage() {
     <div className="min-h-screen bg-slate-50">
       <NavBar />
       <main className="mx-auto w-full max-w-5xl space-y-4 px-4 py-4">
-        <Card>
-          <div className="flex items-center justify-between">
-            <h1 className="text-lg font-semibold">Outlets</h1>
+        {isOwner ? (
+          <>
+            <Card>
+              <div className="flex items-center justify-between">
+                <h1 className="text-lg font-semibold">Outlets</h1>
 
-            <button
-              onClick={() => setShowCreateForm(!showCreateForm)}
-              className="rounded-md bg-emerald-500 px-4 py-2 text-white text-sm font-semibold hover:bg-emerald-600 transition"
-            >
-              {showCreateForm ? "Close" : "➕ Create Outlet"}
-            </button>
-          </div>
+                <button
+                  onClick={() => setShowCreateForm(!showCreateForm)}
+                  className="rounded-md bg-emerald-500 px-4 py-2 text-white text-sm font-semibold hover:bg-emerald-600 transition"
+                >
+                  {showCreateForm ? "Close" : "➕ Create Outlet"}
+                </button>
+              </div>
 
-          {showCreateForm && (
-            <form className="mt-4 grid gap-3 sm:grid-cols-2" onSubmit={create}>
-              <input
-                placeholder="Name"
-                className="rounded-md border border-slate-200 px-3 text-black py-2"
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                required
-              />
-              <input
-                placeholder="Outlet ID"
-                className="rounded-md border border-slate-200 px-3 text-black py-2"
-                value={form.outletId}
-                onChange={(e) => setForm({ ...form, outletId: e.target.value })}
-                required
-              />
-              <input
-                placeholder="City"
-                className="rounded-md border border-slate-200 px-3 text-black py-2 sm:col-span-2"
-                value={form.city}
-                onChange={(e) => setForm({ ...form, city: e.target.value })}
-              />
-              <input
-                type="number"
-                placeholder="Monthly target"
-                className="rounded-md border border-slate-200 px-3 text-black py-2"
-                value={form.monthlyTarget}
-                onChange={(e) =>
-                  setForm({ ...form, monthlyTarget: Number(e.target.value) })
-                }
-              />
-              <input
-                type="number"
-                placeholder="Cash box"
-                className="rounded-md border text-black border-slate-200 px-3 py-2"
-                value={form.cashBox}
-                onChange={(e) =>
-                  setForm({ ...form, cashBox: Number(e.target.value) })
-                }
-              />
-              <input
-                type="password"
-                placeholder="Outlet password"
-                className="rounded-md border text-black border-slate-200 px-3 py-2"
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-                required
-              />
-              <button className="rounded-md bg-emerald-500 py-2 text-white font-semibold sm:col-span-2">
-                Create
-              </button>
-            </form>
-          )}
-          {message && (
-            <div className="mt-2 text-sm text-slate-600">{message}</div>
-          )}
-          <div className="grid gap-3 sm:grid-cols-2 m-5">
-            {loading && <div>Loading...</div>}
-            {items.map((o) => (
-              <Card key={o._id}>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-lg font-semibold">{o.name}</div>
-                    <div className="text-xs text-slate-500">
-                      ID: {o.outletId}
+              {showCreateForm && (
+                <form className="mt-4 grid gap-3 sm:grid-cols-2" onSubmit={create}>
+                  <input
+                    placeholder="Name"
+                    className="rounded-md border border-slate-200 px-3 text-black py-2"
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                    required
+                  />
+                  <input
+                    placeholder="Outlet ID"
+                    className="rounded-md border border-slate-200 px-3 text-black py-2"
+                    value={form.outletId}
+                    onChange={(e) => setForm({ ...form, outletId: e.target.value })}
+                    required
+                  />
+                  <input
+                    placeholder="City"
+                    className="rounded-md border border-slate-200 px-3 text-black py-2 sm:col-span-2"
+                    value={form.city}
+                    onChange={(e) => setForm({ ...form, city: e.target.value })}
+                  />
+                  <input
+                    type="number"
+                    placeholder="Monthly target"
+                    className="rounded-md border border-slate-200 px-3 text-black py-2"
+                    value={form.monthlyTarget}
+                    onChange={(e) =>
+                      setForm({ ...form, monthlyTarget: Number(e.target.value) })
+                    }
+                  />
+                  <input
+                    type="number"
+                    placeholder="Cash box"
+                    className="rounded-md border text-black border-slate-200 px-3 py-2"
+                    value={form.cashBox}
+                    onChange={(e) =>
+                      setForm({ ...form, cashBox: Number(e.target.value) })
+                    }
+                  />
+                  <input
+                    type="password"
+                    placeholder="Outlet password"
+                    className="rounded-md border text-black border-slate-200 px-3 py-2"
+                    value={form.password}
+                    onChange={(e) => setForm({ ...form, password: e.target.value })}
+                    required
+                  />
+                  <button className="rounded-md bg-emerald-500 py-2 text-white font-semibold sm:col-span-2">
+                    Create
+                  </button>
+                </form>
+              )}
+              {message && (
+                <div className="mt-2 text-sm text-slate-600">{message}</div>
+              )}
+              <div className="grid gap-3 sm:grid-cols-2 m-5">
+                {loading && <div>Loading...</div>}
+                {items.map((o) => (
+                  <Card key={o._id}>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-lg font-semibold">{o.name}</div>
+                        <div className="text-xs text-slate-500">
+                          ID: {o.outletId}
+                        </div>
+                        <div className="text-xs text-slate-500">{o.city}</div>
+                      </div>
+                      <div className="text-right text-sm text-slate-600">
+                        <div>Target ₹{o.monthlyTarget.toLocaleString()}</div>
+                        <div>Cash box ₹{o.cashBox.toLocaleString()}</div>
+                      </div>
                     </div>
-                    <div className="text-xs text-slate-500">{o.city}</div>
-                  </div>
-                  <div className="text-right text-sm text-slate-600">
-                    <div>Target ₹{o.monthlyTarget.toLocaleString()}</div>
-                    <div>Cash box ₹{o.cashBox.toLocaleString()}</div>
-                  </div>
-                </div>
-                <div className="mt-4 flex gap-2">
-                  <button
-                    onClick={() => handleEdit(o)}
-                    className="flex-1 rounded-md bg-slate-200 px-3 py-1 text-sm font-medium text-slate-700 hover:bg-slate-300"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => setOutletToDelete(o)}
-                    className="flex-1 rounded-md bg-red-100 px-3 py-1 text-sm font-medium text-red-600 hover:bg-red-200"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </Card>
-            ))}
-          </div>
-        </Card>
+                    <div className="mt-4 flex gap-2">
+                      <button
+                        onClick={() => handleEdit(o)}
+                        className="flex-1 rounded-md bg-slate-200 px-3 py-1 text-sm font-medium text-slate-700 hover:bg-slate-300"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => setOutletToDelete(o)}
+                        className="flex-1 rounded-md bg-red-100 px-3 py-1 text-sm font-medium text-red-600 hover:bg-red-200"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </Card>
 
-        <Card>
-          <h1 className="text-lg font-semibold">Company salespersons</h1>
-          <form className="mt-3 space-y-3" onSubmit={saveCompanySalespersons}>
-            <textarea
-              placeholder="Salesperson names (comma-separated)"
-              className="w-full rounded-md border text-black border-slate-200 px-3 py-2"
-              value={companySalespersons}
-              onChange={(e) => setCompanySalespersons(e.target.value)}
-            />
-            <button className="rounded-md bg-emerald-500 py-2 px-4 text-white font-semibold">
-              Save
-            </button>
-          </form>
-        </Card>
+            <Card>
+              <h1 className="text-lg font-semibold">Company salespersons</h1>
+              <form className="mt-3 space-y-3" onSubmit={saveCompanySalespersons}>
+                <textarea
+                  placeholder="Salesperson names (comma-separated)"
+                  className="w-full rounded-md border text-black border-slate-200 px-3 py-2"
+                  value={companySalespersons}
+                  onChange={(e) => setCompanySalespersons(e.target.value)}
+                />
+                <button className="rounded-md bg-emerald-500 py-2 px-4 text-white font-semibold">
+                  Save
+                </button>
+              </form>
+            </Card>
+          </>
+        ) : (
+          <div className="text-center text-slate-500">You do not have permission to view this page.</div>
+        )}
       </main>
 
       {editingOutlet && (

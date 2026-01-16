@@ -12,6 +12,7 @@ const UserSchema = new Schema(
     email: { type: String, required: true },
     passwordHash: { type: String },
     active: { type: Boolean, default: true },
+    role: { type: String, required: true, default: "manager" },
   },
   { timestamps: true }
 );

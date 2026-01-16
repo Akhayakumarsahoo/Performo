@@ -4,6 +4,7 @@ import env from "../config/env";
 import { validateBody } from "../middleware/validate";
 import { loginSchema, signupSchema, refreshSchema } from "../schemas/auth";
 import { Company } from "../models/Company";
+import { User } from "../models/User";
 import { Session } from "../models/Session";
 import { verifyPassword, hashPassword } from "../utils/password";
 import {
@@ -18,18 +19,69 @@ const router = Router();
 router.post("/login", validateBody(loginSchema), async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email, active: true });
-    if (!user || !user.passwordHash)
-      return res.status(401).json({ message: "Invalid credentials" });
-    const ok = await verifyPassword(password, String(user.passwordHash));
-    if (!ok) return res.status(401).json({ message: "Invalid credentials" });
 
-    if (!user.companyId)
+    // First, check if the user is a company owner
+    let user = await Company.findOne({ email });
+    if (user) {
+      if (!user.passwordHash) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+      const ok = await verifyPassword(password, user.passwordHash);
+      if (!ok) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+
+      const authUser = {
+        userId: user._id.toString(),
+        companyId: user._id.toString(),
+        role: "owner",
+      };
+
+      const accessToken = signAccessToken(authUser);
+      const refreshToken = signRefreshToken(authUser);
+
+      const expiresMs = parseDurationToMs(
+        env.REFRESH_EXPIRES_IN,
+        30 * 24 * 60 * 60 * 1000
+      );
+      await Session.create({
+        userId: user._id,
+        companyId: user._id,
+        token: refreshToken,
+        expiresAt: new Date(Date.now() + expiresMs),
+        userAgent: req.headers["user-agent"],
+      });
+
+      return res.json({
+        accessToken,
+        refreshToken,
+        user: {
+          id: user._id,
+          name: user.ownerName,
+          role: "owner",
+        },
+      });
+    }
+
+    // If not a company owner, check if the user is a regular user
+    const regularUser = await User.findOne({ email, active: true });
+    if (!regularUser || !regularUser.passwordHash) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    const ok = await verifyPassword(password, String(regularUser.passwordHash));
+    if (!ok) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    if (!regularUser.companyId) {
       return res.status(400).json({ message: "User missing company" });
+    }
 
     const authUser = {
-      userId: user._id.toString(),
-      companyId: String(user.companyId),
+      userId: regularUser._id.toString(),
+      companyId: String(regularUser.companyId),
+      role: regularUser.role, // Include the user's role
     };
 
     const accessToken = signAccessToken(authUser);
@@ -40,8 +92,8 @@ router.post("/login", validateBody(loginSchema), async (req, res, next) => {
       30 * 24 * 60 * 60 * 1000
     );
     await Session.create({
-      userId: user._id,
-      companyId: user.companyId,
+      userId: regularUser._id,
+      companyId: regularUser.companyId,
       token: refreshToken,
       expiresAt: new Date(Date.now() + expiresMs),
       userAgent: req.headers["user-agent"],
@@ -51,8 +103,9 @@ router.post("/login", validateBody(loginSchema), async (req, res, next) => {
       accessToken,
       refreshToken,
       user: {
-        id: user._id,
-        name: user.name,
+        id: regularUser._id,
+        name: regularUser.name,
+        role: regularUser.role,
       },
     });
   } catch (error) {
@@ -64,18 +117,15 @@ router.post("/signup", validateBody(signupSchema), async (req, res, next) => {
   try {
     const { ownerName, email, phoneNumber, password, companyName } = req.body;
 
-    // Check if user with this email already exists (across all companies)
-    const existingUser = await Company.findOne({ email });
-    if (existingUser) {
+    const existingCompany = await Company.findOne({ email });
+    if (existingCompany) {
       return res
         .status(400)
-        .json({ message: "User already exists with this email address" });
+        .json({ message: "Company already exists with this email address" });
     }
 
-    // Hash password
     const passwordHash = await hashPassword(password);
 
-    // Create company with owner details
     const company = await Company.create({
       name: companyName,
       ownerName,
@@ -85,14 +135,21 @@ router.post("/signup", validateBody(signupSchema), async (req, res, next) => {
       plan: "standard",
     });
 
-    const accessToken = signAccessToken(company._id.toString());
-    const refreshToken = signRefreshToken(company._id.toString());
+    const authUser = {
+      userId: company._id.toString(),
+      companyId: company._id.toString(),
+      role: "owner",
+    };
+
+    const accessToken = signAccessToken(authUser);
+    const refreshToken = signRefreshToken(authUser);
 
     const expiresMs = parseDurationToMs(
       env.REFRESH_EXPIRES_IN,
       30 * 24 * 60 * 60 * 1000
     );
     await Session.create({
+      userId: company._id,
       companyId: company._id,
       token: refreshToken,
       expiresAt: new Date(Date.now() + expiresMs),
@@ -104,7 +161,8 @@ router.post("/signup", validateBody(signupSchema), async (req, res, next) => {
       refreshToken,
       user: {
         id: company._id,
-        name: company.name,
+        name: company.ownerName,
+        role: "owner",
       },
     });
   } catch (error) {
@@ -129,21 +187,30 @@ router.post("/refresh", validateBody(refreshSchema), async (req, res, next) => {
     const session = await Session.findOne({
       token: refreshToken,
       revoked: false,
-    });
+    }).populate("userId");
+
     if (!session || session.expiresAt < new Date()) {
       return res.status(401).json({ message: "Session expired" });
     }
 
-    const company = await Company.findById(session.companyId);
-    if (!company || !company.active)
+    const user = session.userId;
+    if (!user || !user.active) {
       return res.status(401).json({ message: "User inactive" });
+    }
 
-    const accessToken = signAccessToken(company._id.toString());
+    const authUser = {
+      userId: user._id.toString(),
+      companyId: String(user.companyId),
+      role: user.role,
+    };
+
+    const accessToken = signAccessToken(authUser);
     res.json({
       accessToken,
       user: {
-        id: ._id,
+        id: user._id,
         name: user.name,
+        role: user.role,
       },
     });
   } catch (error) {

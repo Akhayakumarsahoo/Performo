@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { requireAuth } from "../middleware/auth";
+import { requireAuth, requireOwnerAuth } from "../middleware/auth";
 import { validateBody } from "../middleware/validate";
 import {
   createOutletSchema,
@@ -44,6 +44,7 @@ router.put("/company/salespersons", async (req, res, next) => {
 
 router.post(
   "/outlets",
+  requireOwnerAuth,
   validateBody(createOutletSchema),
   async (req, res, next) => {
     try {
@@ -75,6 +76,7 @@ router.get("/outlets", async (req, res, next) => {
 
 router.patch(
   "/outlets/:id",
+  requireOwnerAuth,
   validateBody(updateOutletSchema),
   async (req, res, next) => {
     try {
@@ -98,7 +100,7 @@ router.patch(
   }
 );
 
-router.delete("/outlets/:id", async (req, res, next) => {
+router.delete("/outlets/:id", requireOwnerAuth, async (req, res, next) => {
   try {
     const outlet = await Outlet.findOneAndDelete({
       _id: req.params.id,
@@ -113,12 +115,16 @@ router.delete("/outlets/:id", async (req, res, next) => {
   }
 });
 
-router.post("/users", async (req, res, next) => {
+router.post("/users", requireOwnerAuth, async (req, res, next) => {
   try {
-    const { password, ...rest } = req.body;
+    const { password, role, ...rest } = req.body;
+    if (role === 'owner') {
+      return res.status(403).json({ message: 'Cannot create owner user' });
+    }
     const passwordHash = await hashPassword(password);
     const user = await User.create({
       ...rest,
+      role,
       passwordHash,
       companyId: req.user!.companyId,
     });
