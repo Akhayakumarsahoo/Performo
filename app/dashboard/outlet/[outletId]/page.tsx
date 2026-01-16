@@ -11,7 +11,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import useAuth from "@/lib/useAuth";
+import { useAuthState } from "@/lib/useAuth";
 import { IOutlet, IDailySales } from "@/lib/definitions";
 import { Card } from "@/components/Card";
 import { apiFetch } from "@/lib/api";
@@ -32,7 +32,7 @@ const OutletPage = () => {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  useAuth();
+  useAuthState();
 
   useEffect(() => {
     const fetchOutletData = async () => {
@@ -79,7 +79,10 @@ const OutletPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <Card title="Total Sales" value={stats?.totalSales} />
         <Card title="Total Transactions" value={stats?.totalTransactions} />
-        <Card title="Average Transaction Value" value={stats?.avgTransactionValue} />
+        <Card
+          title="Average Transaction Value"
+          value={stats?.avgTransactionValue}
+        />
       </div>
 
       <div className="mb-8">
@@ -101,7 +104,9 @@ const OutletPage = () => {
             <tbody>
               {sales.map((s) => (
                 <tr key={s._id}>
-                  <td className="py-2 px-4 border-b">{new Date(s.date).toLocaleDateString()}</td>
+                  <td className="py-2 px-4 border-b">
+                    {new Date(s.date).toLocaleDateString()}
+                  </td>
                   <td className="py-2 px-4 border-b">{s.totalSales}</td>
                   <td className="py-2 px-4 border-b">{s.totalTransactions}</td>
                 </tr>
