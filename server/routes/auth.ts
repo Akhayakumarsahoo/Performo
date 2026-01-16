@@ -3,7 +3,6 @@ import jwt from "jsonwebtoken";
 import env from "../config/env";
 import { validateBody } from "../middleware/validate";
 import { loginSchema, signupSchema, refreshSchema } from "../schemas/auth";
-import { User } from "../models/User";
 import { Company } from "../models/Company";
 import { Session } from "../models/Session";
 import { verifyPassword, hashPassword } from "../utils/password";
@@ -66,12 +65,15 @@ router.post("/signup", validateBody(signupSchema), async (req, res, next) => {
     const { ownerName, email, phoneNumber, password, companyName } = req.body;
 
     // Check if user with this email already exists (across all companies)
-    const existingUser = await User.findOne({ email });
+    const existingUser = await Company.findOne({ email });
     if (existingUser) {
       return res
         .status(400)
         .json({ message: "User already exists with this email address" });
     }
+
+    // Hash password
+    const passwordHash = await hashPassword(password);
 
     // Create company with owner details
     const company = await Company.create({
@@ -79,34 +81,19 @@ router.post("/signup", validateBody(signupSchema), async (req, res, next) => {
       ownerName,
       email,
       phoneNumber,
+      passwordHash,
       plan: "standard",
     });
 
-    // Hash password and create owner user
-    const passwordHash = await hashPassword(password);
-    const user = await User.create({
-      name: ownerName,
-      email,
-      companyId: company._id,
-      passwordHash,
-      active: true,
-    });
-
-    const authUser = {
-      userId: user._id.toString(),
-      companyId: String(user.companyId),
-    };
-
-    const accessToken = signAccessToken(authUser);
-    const refreshToken = signRefreshToken(authUser);
+    const accessToken = signAccessToken(company._id.toString());
+    const refreshToken = signRefreshToken(company._id.toString());
 
     const expiresMs = parseDurationToMs(
       env.REFRESH_EXPIRES_IN,
       30 * 24 * 60 * 60 * 1000
     );
     await Session.create({
-      userId: user._id,
-      companyId: user.companyId,
+      companyId: company._id,
       token: refreshToken,
       expiresAt: new Date(Date.now() + expiresMs),
       userAgent: req.headers["user-agent"],
@@ -116,8 +103,8 @@ router.post("/signup", validateBody(signupSchema), async (req, res, next) => {
       accessToken,
       refreshToken,
       user: {
-        id: user._id,
-        name: user.name,
+        id: company._id,
+        name: company.name,
       },
     });
   } catch (error) {
@@ -147,20 +134,15 @@ router.post("/refresh", validateBody(refreshSchema), async (req, res, next) => {
       return res.status(401).json({ message: "Session expired" });
     }
 
-    const user = await User.findById(session.userId);
-    if (!user || !user.active)
+    const company = await Company.findById(session.companyId);
+    if (!company || !company.active)
       return res.status(401).json({ message: "User inactive" });
 
-    const authUser = {
-      userId: user._id.toString(),
-      companyId: String(user.companyId),
-    };
-
-    const accessToken = signAccessToken(authUser);
+    const accessToken = signAccessToken(company._id.toString());
     res.json({
       accessToken,
       user: {
-        id: user._id,
+        id: ._id,
         name: user.name,
       },
     });

@@ -2,6 +2,10 @@ import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import env from "../config/env";
 
+export type AuthCompany = {
+  companyId: string;
+};
+
 export type AuthUser = {
   userId: string;
   companyId: string;
@@ -15,6 +19,7 @@ export type OutletAuth = {
 
 declare module "express-serve-static-core" {
   interface Request {
+    company?: AuthCompany;
     user?: AuthUser;
     outlet?: OutletAuth;
   }
@@ -38,11 +43,13 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
     return res.status(401).json({ message: "Invalid or expired token" });
   }
 }
-
-// No role-based authorization needed since there's only one owner per company
 // All authenticated users have full access to their company's data
 
-export function requireOutletAuth(req: Request, res: Response, next: NextFunction) {
+export function requireOutletAuth(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
   const bearer = req.headers.authorization;
   const token = bearer?.startsWith("Bearer ") ? bearer.slice(7) : undefined;
   const fallbackToken = (req as any).cookies?.outletToken as string | undefined;

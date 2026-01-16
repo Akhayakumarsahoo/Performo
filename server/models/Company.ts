@@ -6,6 +6,7 @@ const CompanySchema = new Schema(
     ownerName: { type: String, required: true },
     email: { type: String, required: true },
     phoneNumber: { type: String, required: true },
+    passwordHash: { type: String },
     plan: { type: String, default: "standard" },
     salespersons: { type: [String], default: [] },
   },
