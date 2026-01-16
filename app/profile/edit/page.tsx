@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import NavBar from "@/components/NavBar";
 import { Card } from "@/components/Card";
-import { apiFetch, getAuth, saveAuth } from "@/lib/api";
+import { apiFetch, getAuth, setAuth } from "@/lib/api";
 import { useRequireAuth } from "@/lib/useAuth";
 
 export default function EditProfilePage() {
@@ -53,7 +53,7 @@ export default function EditProfilePage() {
             },
           },
         };
-        saveAuth(newAuth);
+        setAuth(newAuth);
       }
 
       setMessage("Profile updated successfully!");
