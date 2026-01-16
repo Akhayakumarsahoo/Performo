@@ -1,35 +1,35 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { clearAuth, getAuth } from '@/lib/api';
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
+import { clearAuth, getAuth } from "@/lib/api";
 
 const ownerLinks = [
-  { href: '/dashboard/admin', label: 'Dashboard' },
-  { href: '/admin/outlets', label: 'Outlets' },
-  { href: '/approvals', label: 'Approvals' },
-  { href: '/admin/users', label: 'Users' },
+  { href: "/dashboard", label: "Dashboard" },
+  { href: "/admin/outlets", label: "Outlets" },
+  { href: "/approvals", label: "Approvals" },
+  { href: "/admin/users", label: "Users" },
 ];
 
 const managerLinks = [
-  { href: '/outlet/dashboard', label: 'Dashboard' },
-  { href: '/admin/outlets', label: 'Outlets' },
-  { href: '/approvals', label: 'Approvals' },
+  { href: "/dashboard", label: "Dashboard" },
+  { href: "/admin/outlets", label: "Outlets" },
+  { href: "/approvals", label: "Approvals" },
 ];
 
 export default function NavBar() {
   const pathname = usePathname();
   const router = useRouter();
   const auth = getAuth();
-  const isOwner = auth?.user?.role === 'owner';
+  const isOwner = auth?.user?.role === "owner";
   const links = isOwner ? ownerLinks : managerLinks;
   const [showConfirm, setShowConfirm] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   const handleLogout = () => {
     clearAuth();
-    router.push('/login');
+    router.push("/login");
   };
 
   if (!auth) return null;
@@ -46,8 +46,8 @@ export default function NavBar() {
                 href={link.href}
                 className={`rounded-md px-3 py-1 font-medium ${
                   pathname === link.href
-                    ? 'bg-emerald-100 text-emerald-700'
-                    : 'text-slate-700 hover:bg-slate-100'
+                    ? "bg-emerald-100 text-emerald-700"
+                    : "text-slate-700 hover:bg-slate-100"
                 }`}
               >
                 {link.label}

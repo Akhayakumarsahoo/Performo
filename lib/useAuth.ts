@@ -52,5 +52,5 @@ export function useRedirectIfAuthenticated() {
 
 export function roleToDefaultPath() {
   // All owners go to admin dashboard since there's only one owner per company
-  return "/dashboard/admin";
+  return "/dashboard";
 }
