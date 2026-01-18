@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { requireAuth } from "../middleware/auth";
 import { Outlet } from "../models/Outlet";
+import bcrypt from "bcrypt";
 
 const router = Router();
 
@@ -12,9 +13,17 @@ router.post("/login", async (req, res, next) => {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    const outlet = await Outlet.findOne({ _id: outletId }).select("+password");
+    const outlet = await Outlet.findOne({ outletId: outletId }).select(
+      "+passwordHash"
+    );
 
-    if (!outlet || outlet.password !== password) {
+    if (!outlet) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    const isMatch = await bcrypt.compare(password, outlet.passwordHash);
+
+    if (!isMatch) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
