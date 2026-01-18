@@ -1,4 +1,4 @@
-'''import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 export async function GET() {
   // In a real application, you would fetch this data from your database
@@ -29,4 +29,3 @@ export async function GET() {
 
   return NextResponse.json(sales);
 }
-'''
