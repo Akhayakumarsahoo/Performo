@@ -41,7 +41,7 @@ export default function Dashboard() {
         <h2 className="text-2xl font-bold mb-4">Previous Sales</h2>
         <div className="space-y-4">
           {sales.map((sale) => (
-            <SalesEntry key={sale.id} sale={sale} />
+            <SalesEntry key={sale._id} sale={sale} />
           ))}
         </div>
       </div>

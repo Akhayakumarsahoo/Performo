@@ -4,15 +4,15 @@ import { useState } from "react";
 
 export function SalesEntry({ sale }) {
   const [isEditing, setIsEditing] = useState(false);
-  const [amount, setAmount] = useState(sale.amount);
+  const [totalSales, setTotalSales] = useState(sale.totalSales);
 
-  const saleDate = new Date(sale.createdAt);
+  const saleDate = new Date(sale.date);
   const now = new Date();
   const isEditable = (now.getTime() - saleDate.getTime()) / (1000 * 60 * 60) < 24;
 
   const handleUpdate = () => {
     // Add logic to update the sale via an API call
-    console.log("Updating sale:", { ...sale, amount });
+    console.log("Updating sale:", { ...sale, totalSales });
     setIsEditing(false);
   };
 
@@ -28,16 +28,16 @@ export function SalesEntry({ sale }) {
           {isEditing ? (
             <input
               type="number"
-              value={amount}
-              onChange={(e) => setAmount(parseFloat(e.target.value))}
+              value={totalSales}
+              onChange={(e) => setTotalSales(parseFloat(e.target.value))}
               className="border rounded px-2 py-1"
             />
           ) : (
-            `$${sale.amount.toFixed(2)}`
+            `$${sale.totalSales.toFixed(2)}`
           )}
         </p>
-        <p className="text-sm text-gray-500">Sold to: {sale.customer}</p>
-        <p className="text-xs text-gray-400">{saleDate.toLocaleString()}</p>
+        <p className="text-sm text-gray-500">Date: {new Date(sale.date).toLocaleDateString()}</p>
+        <p className="text-xs text-gray-400">Entered By: {sale.enteredBy}</p>
       </div>
       {isEditable && (
         <div className="flex space-x-2">
