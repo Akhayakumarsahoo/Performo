@@ -4,6 +4,29 @@ import { Outlet } from "../models/Outlet";
 
 const router = Router();
 
+router.post("/login", async (req, res, next) => {
+  try {
+    const { outletId, password, deviceId } = req.body;
+
+    if (!outletId || !password || !deviceId) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    const outlet = await Outlet.findOne({ _id: outletId }).select("+password");
+
+    if (!outlet || outlet.password !== password) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    // You might want to generate a proper token here
+    const token = `dummy-token-for-${outletId}`;
+
+    res.json({ token, outlet });
+  } catch (error) {
+    next(error);
+  }
+});
+
 router.use(requireAuth);
 
 router.get("/dashboard", async (req, res, next) => {
