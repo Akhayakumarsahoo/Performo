@@ -21,11 +21,11 @@ export default function OutletLoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // If already logged in as outlet, go directly to sales page
+  // If already logged in as outlet, go directly to dashboard page
   useEffect(() => {
     const session = getOutletSession();
     if (session) {
-      router.replace('/outlet/sales');
+      router.replace('/outlet/dashboard');
     }
   }, [router]);
 
@@ -48,7 +48,7 @@ export default function OutletLoginPage() {
       }
       const data = (await res.json()) as OutletLoginResponse;
       setOutletSession({ token: data.token, outlet: data.outlet });
-      router.push('/outlet/sales');
+      router.push('/outlet/dashboard');
     } catch (err) {
       const error = err as Error;
       setError(error.message || 'Login failed');

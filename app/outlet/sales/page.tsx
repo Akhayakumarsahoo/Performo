@@ -8,7 +8,8 @@ import { getOutletSession, clearOutletSession } from '@/lib/outlet';
 interface OutletSalesPayload {
   date: string;
   totalSales: number;
-  payments: { cash: number; upi: number; card: number };
+  payments: { cash: number; upi: number; card: number; zomato: number; swiggy: number };
+  actualCash: number;
   enteredByName: string;
   cashExpenses?: number;
   cashWithdrawal?: number;
@@ -18,7 +19,8 @@ export default function OutletSalesPage() {
   const router = useRouter();
   const [date, setDate] = useState<string>('');
   const [totalSales, setTotalSales] = useState<number>(0);
-  const [payments, setPayments] = useState({ cash: 0, upi: 0, card: 0 });
+  const [payments, setPayments] = useState({ cash: 0, upi: 0, card: 0, zomato: 0, swiggy: 0 });
+  const [actualCash, setActualCash] = useState<number>(0);
   const [enteredByName, setEnteredByName] = useState('');
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -49,6 +51,7 @@ export default function OutletSalesPage() {
         date,
         totalSales,
         payments,
+        actualCash,
         enteredByName,
       };
       const res = await fetch(`${apiBase()}/outlet/sales`, {
@@ -77,7 +80,7 @@ export default function OutletSalesPage() {
     }
   };
 
-  const sumPayments = payments.cash + payments.upi + payments.card;
+  const sumPayments = payments.cash + payments.upi + payments.card + payments.zomato + payments.swiggy;
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center px-4 py-6">
@@ -106,10 +109,9 @@ export default function OutletSalesPage() {
               Date
               <input
                 type="date"
-                className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2"
+                className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 bg-slate-100"
                 value={date}
-                onChange={(e) => setDate(e.target.value)}
-                required
+                readOnly
               />
             </label>
             <label className="text-sm text-slate-600">
@@ -134,7 +136,7 @@ export default function OutletSalesPage() {
             />
           </label>
           <div className="grid gap-3 sm:grid-cols-3">
-            {(['cash', 'upi', 'card'] as const).map((key) => (
+            {(['cash', 'upi', 'card', 'zomato', 'swiggy'] as const).map((key) => (
               <label key={key} className="text-sm text-slate-600">
                 {key.toUpperCase()} (₹)
                 <input
@@ -155,6 +157,16 @@ export default function OutletSalesPage() {
           <div className="text-xs text-slate-500">
             Sum: ₹{sumPayments.toLocaleString()} (must equal Total)
           </div>
+           <label className="text-sm text-slate-600">
+            Actual Cash (₹)
+            <input
+              type="number"
+              className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2"
+              value={actualCash}
+              onChange={(e) => setActualCash(Number(e.target.value))}
+              required
+            />
+          </label>
           {message && (
             <div className="rounded-md bg-slate-100 px-3 py-2 text-sm">
               {message}

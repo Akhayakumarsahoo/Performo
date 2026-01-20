@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { requireAuth } from "../middleware/auth";
 import { Outlet } from "../models/Outlet";
+import { DailySales } from "../models/DailySales";
 import bcrypt from "bcrypt";
 
 const router = Router();
@@ -37,6 +38,35 @@ router.post("/login", async (req, res, next) => {
 });
 
 router.use(requireAuth);
+
+router.post("/sales", async (req, res, next) => {
+    try {
+        const { date, totalSales, payments, actualCash, enteredByName } = req.body;
+        const today = new Date().toISOString().slice(0, 10);
+
+        if (date !== today && req.user.role !== 'manager' && req.user.role !== 'admin') {
+            return res.status(400).json({ message: "You can only submit sales for the current date." });
+        }
+
+        const outletId = req.user.outletId;
+
+        const sales = new DailySales({
+            date,
+            totalSales,
+            payments,
+            actualCash,
+            enteredByName,
+            outletId,
+            companyId: req.user.companyId,
+        });
+
+        await sales.save();
+
+        res.status(201).json({ message: "Sales data saved successfully" });
+    } catch (error) {
+        next(error);
+    }
+});
 
 router.get("/dashboard", async (req, res, next) => {
   try {
