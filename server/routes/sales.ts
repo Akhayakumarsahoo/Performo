@@ -2,7 +2,7 @@ import { Router } from "express";
 import { requireAuth } from "../middleware/auth";
 import { DailySales } from "../models/DailySales";
 import { isValidObjectId } from "mongoose";
-import { validate } from "../middleware/validate";
+import { validateBody } from "../middleware/validate";
 import { createOutletSalesSchema, createSalesSchema } from "../schemas/sales";
 
 const router = Router();
@@ -25,7 +25,7 @@ router.get("/", requireAuth, async (req, res, next) => {
 });
 
 // Create a new sales entry (for admins/managers)
-router.post("/", requireAuth, validate(createSalesSchema), async (req, res, next) => {
+router.post("/", requireAuth, validateBody(createSalesSchema), async (req, res, next) => {
   try {
     const {
       outletId,
@@ -73,7 +73,7 @@ router.post("/", requireAuth, validate(createSalesSchema), async (req, res, next
 });
 
 // Create a new sales entry (for authenticated outlet staff)
-router.post("/outlet", requireAuth, validate(createOutletSalesSchema), async (req, res, next) => {
+router.post("/outlet", requireAuth, validateBody(createOutletSalesSchema), async (req, res, next) => {
   try {
     const {
       date,

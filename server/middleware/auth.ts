@@ -73,3 +73,36 @@ export function requireOutletAuth(
     return res.status(401).json({ message: "Invalid or expired outlet token" });
   }
 }
+
+export const auth = (req: any): Promise<AuthUser> => {
+  return new Promise((resolve, reject) => {
+    const bearer = req.headers.get?.("authorization");
+    const token = typeof bearer === 'string' && bearer.startsWith("Bearer ") ? bearer.slice(7) : undefined;
+
+    const cookieHeader = req.headers.get?.('Cookie');
+    let fallbackToken: string | undefined;
+    if (typeof cookieHeader === 'string') {
+      const cookies = cookieHeader.split(';');
+      for (const cookie of cookies) {
+        const parts = cookie.trim().split('=');
+        if (parts[0] === 'accessToken') {
+          fallbackToken = parts[1];
+          break;
+        }
+      }
+    }
+
+    const jwtToken = token || fallbackToken;
+
+    if (!jwtToken) {
+      return reject(new Error("Unauthenticated"));
+    }
+
+    try {
+      const decoded = jwt.verify(jwtToken, env.JWT_SECRET) as AuthUser;
+      resolve(decoded);
+    } catch (err) {
+      reject(new Error("Invalid or expired token"));
+    }
+  });
+};
