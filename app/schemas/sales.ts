@@ -1,4 +1,3 @@
-
 import { z } from "zod";
 
 // A detailed payment schema including online options
@@ -12,6 +11,12 @@ const detailedPaymentsSchema = z.object({
   }).default({ zomato: 0, swiggy: 0 }),
 });
 
+const actualPaymentsSchema = z.object({
+  cash: z.number().min(0).default(0),
+  upi: z.number().min(0).default(0),
+  card: z.number().min(0).default(0),
+});
+
 // Schema for sales creation by an admin or higher-level user
 export const createSalesSchema = z
   .object({
@@ -19,8 +24,7 @@ export const createSalesSchema = z
     date: z.string().or(z.date()).transform((v) => new Date(v)),
     totalSales: z.number().min(0), // Total sales from the billing system (e.g., Petpooja)
     billedPayments: detailedPaymentsSchema, // Payments as per the billing system
-    actualPayments: detailedPaymentsSchema, // Actual payments received at closing
-    actualCashInBox: z.number().min(0), // Physical cash counted in the cashbox
+    actualPayments: actualPaymentsSchema, // Actual payments received at closing
     evidenceImages: z.array(z.string().url()).optional(),
     cashExpenses: z.number().min(0).optional(),
     cashWithdrawal: z.number().min(0).optional(),
@@ -48,8 +52,7 @@ export const createOutletSalesSchema = z
     date: z.string().or(z.date()).transform((v) => new Date(v)),
     totalSales: z.number().min(0),
     billedPayments: detailedPaymentsSchema,
-    actualPayments: detailedPaymentsSchema,
-    actualCashInBox: z.number().min(0),
+    actualPayments: actualPaymentsSchema,
     enteredByName: z.string().min(1),
     evidenceImages: z.array(z.string().url()).optional(),
     cashExpenses: z.number().min(0).optional(),

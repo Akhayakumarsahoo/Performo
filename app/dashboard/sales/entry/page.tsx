@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createOutletSalesSchema, CreateOutletSalesInput, CreateOutletSalesOutput } from '@/app/schemas/sales';
 import { apiFetch } from '@/lib/api';
@@ -17,7 +17,7 @@ const SalesEntryPage = () => {
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm<CreateOutletSalesInput>({
+  } = useForm<CreateOutletSalesInput, any, CreateOutletSalesOutput>({
     resolver: zodResolver(createOutletSalesSchema),
     defaultValues: {
       date: new Date().toISOString().split('T')[0],
@@ -32,14 +32,12 @@ const SalesEntryPage = () => {
         cash: 0,
         upi: 0,
         card: 0,
-        online: { zomato: 0, swiggy: 0 },
       },
-      actualCashInBox: 0,
       enteredByName: '',
     },
   });
 
-  const onSubmit = async (data: CreateOutletSalesOutput) => {
+  const onSubmit: SubmitHandler<CreateOutletSalesOutput> = async (data) => {
     setIsSubmitting(true);
     setError(null);
     try {
@@ -97,7 +95,7 @@ const SalesEntryPage = () => {
               <Controller
                 name="totalSales"
                 control={control}
-                render={({ field }) => <input {...field} type="number" step="0.01" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />}
+                render={({ field }) => <input {...field} type="number" step="0.01" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />}
               />
               {errors.totalSales && <p className="text-red-500 text-xs mt-1">{errors.totalSales.message}</p>}
             </div>
@@ -106,7 +104,7 @@ const SalesEntryPage = () => {
               <Controller
                 name="billedPayments.cash"
                 control={control}
-                render={({ field }) => <input {...field} type="number" step="0.01" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />}
+                render={({ field }) => <input {...field} type="number" step="0.01" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />}
               />
             </div>
             <div>
@@ -114,7 +112,7 @@ const SalesEntryPage = () => {
               <Controller
                 name="billedPayments.upi"
                 control={control}
-                render={({ field }) => <input {...field} type="number" step="0.01" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />}
+                render={({ field }) => <input {...field} type="number" step="0.01" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />}
               />
             </div>
             <div>
@@ -122,7 +120,7 @@ const SalesEntryPage = () => {
               <Controller
                 name="billedPayments.card"
                 control={control}
-                render={({ field }) => <input {...field} type="number" step="0.01" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />}
+                render={({ field }) => <input {...field} type="number" step="0.01" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />}
               />
             </div>
             <div>
@@ -130,7 +128,7 @@ const SalesEntryPage = () => {
               <Controller
                 name="billedPayments.online.zomato"
                 control={control}
-                render={({ field }) => <input {...field} type="number" step="0.01" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />}
+                render={({ field }) => <input {...field} type="number" step="0.01" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />}
               />
             </div>
             <div>
@@ -138,7 +136,7 @@ const SalesEntryPage = () => {
               <Controller
                 name="billedPayments.online.swiggy"
                 control={control}
-                render={({ field }) => <input {...field} type="number" step="0.01" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />}
+                render={({ field }) => <input {...field} type="number" step="0.01" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />}
               />
             </div>
           </div>
@@ -149,21 +147,12 @@ const SalesEntryPage = () => {
         <div className="p-4 border rounded">
           <h2 className="text-lg font-semibold">Actual Payments (at Closing)</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
-            <div>
-              <label htmlFor="actualCashInBox" className="block text-sm font-medium text-gray-700">Actual Cash in Box</label>
-              <Controller
-                name="actualCashInBox"
-                control={control}
-                render={({ field }) => <input {...field} type="number" step="0.01" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />}
-              />
-               {errors.actualCashInBox && <p className="text-red-500 text-xs mt-1">{errors.actualCashInBox.message}</p>}
-            </div>
              <div>
               <label htmlFor="actualPayments.cash" className="block text-sm font-medium text-gray-700">Actual Cash Received</label>
               <Controller
                 name="actualPayments.cash"
                 control={control}
-                render={({ field }) => <input {...field} type="number" step="0.01" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />}
+                render={({ field }) => <input {...field} type="number" step="0.01" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />}
               />
             </div>
             <div>
@@ -171,7 +160,7 @@ const SalesEntryPage = () => {
               <Controller
                 name="actualPayments.upi"
                 control={control}
-                render={({ field }) => <input {...field} type="number" step="0.01" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />}
+                render={({ field }) => <input {...field} type="number" step="0.01" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />}
               />
             </div>
             <div>
@@ -179,23 +168,7 @@ const SalesEntryPage = () => {
               <Controller
                 name="actualPayments.card"
                 control={control}
-                render={({ field }) => <input {...field} type="number" step="0.01" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />}
-              />
-            </div>
-            <div>
-              <label htmlFor="actualPayments.online.zomato" className="block text-sm font-medium text-gray-700">Actual Zomato</label>
-              <Controller
-                name="actualPayments.online.zomato"
-                control={control}
-                render={({ field }) => <input {...field} type="number" step="0.01" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />}
-              />
-            </div>
-            <div>
-              <label htmlFor="actualPayments.online.swiggy" className="block text-sm font-medium text-gray-700">Actual Swiggy</label>
-              <Controller
-                name="actualPayments.online.swiggy"
-                control={control}
-                render={({ field }) => <input {...field} type="number" step="0.01" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />}
+                render={({ field }) => <input {...field} type="number" step="0.01" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />}
               />
             </div>
           </div>
