@@ -7,11 +7,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { createOutletSalesSchema, CreateOutletSalesInput, CreateOutletSalesOutput } from '@/app/schemas/sales';
 import { apiFetch } from '@/lib/api';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/lib/useAuth';
+import { useAuthState } from '@/lib/useAuth';
 
 const SalesEntryPage = () => {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user } = useAuthState();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -62,7 +62,7 @@ const SalesEntryPage = () => {
     );
   }
 
-  if ((user.role === 'admin' || user.role === 'manager') && !user.outletId) {
+  if ((user.role === 'owner' || user.role === 'manager') && !user.outletId) {
     return (
       <div className="min-h-screen bg-slate-50 flex justify-center p-4">
         <div className="w-full max-w-4xl bg-white rounded-2xl p-6 shadow-sm text-center">
