@@ -10,8 +10,22 @@ import { Card } from "@/components/Card";
 import { apiFetch } from "@/lib/api";
 import { useRequireAuth } from "@/lib/useAuth";
 
+type Stats = {
+  outletId: string;
+  month: string;
+  name: string;
+  percent: number;
+  achieved: number;
+  target: number;
+  remainingTarget: number;
+  forecastedEnd: number;
+  achievedUnapproved: number;
+  pendingApprovals: number;
+  alerts: string[];
+}
+
 type AdminResponse = {
-  stats: any[];
+  stats: Stats[];
   totals: { target: number; achieved: number; percent: number };
 };
 export function DashboardRouter() {
@@ -34,8 +48,9 @@ export default function AdminDashboard() {
       try {
         const res = await apiFetch<AdminResponse>("/dashboard/admin");
         setData(res);
-      } catch (err: any) {
-        setError(err.message || "Failed to load dashboard");
+      } catch (err) {
+        const error = err as Error;
+        setError(error.message || "Failed to load dashboard");
       } finally {
         setLoading(false);
       }
@@ -78,7 +93,7 @@ export default function AdminDashboard() {
         </Card>
 
         <div className="grid gap-3 sm:grid-cols-2">
-          {data.stats.map((s: any) => (
+          {data.stats.map((s: Stats) => (
             <Link href={`/dashboard/outlet/${s.outletId}`} key={s.outletId}>
               <Card>
                 <div className="flex items-center justify-between">

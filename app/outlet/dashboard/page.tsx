@@ -3,9 +3,10 @@
 import { useEffect, useState } from 'react';
 import { SalesEntry } from './SalesEntry';
 import { OutletStats } from '@/lib/dashboard';
+import { IDailySales } from '@/lib/definitions';
 
 export default function Dashboard() {
-  const [sales, setSales] = useState([]);
+  const [sales, setSales] = useState<IDailySales[]>([]);
   const [stats, setStats] = useState<OutletStats>({
     totalSales: 0,
     totalTransactions: 0,
@@ -24,7 +25,7 @@ export default function Dashboard() {
     fetch('/api/dashboard/outlet')
       .then((res) => res.json())
       .then((data) => setStats(data));
-  }, []);
+  }, [sales]);
 
   return (
     <div className='container mx-auto px-4 py-8'>
@@ -58,8 +59,8 @@ export default function Dashboard() {
       <div>
         <h2 className='text-2xl font-bold mb-4'>Previous Sales</h2>
         <div className='space-y-4'>
-          {sales.map((sale) => (
-            <SalesEntry key={sale.id} sale={sale} />
+          {sales.map((sale: IDailySales) => (
+            <SalesEntry key={sale._id} sale={sale} />
           ))}
         </div>
       </div>

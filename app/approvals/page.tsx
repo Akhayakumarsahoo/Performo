@@ -28,8 +28,9 @@ export default function ApprovalsPage() {
     try {
       const res = await apiFetch<Sale[]>('/sales');
       setItems(res.filter((s) => !s.approved));
-    } catch (err: any) {
-      setError(err.message || 'Failed to load');
+    } catch (err) {
+      const error = err as Error;
+      setError(error.message || 'Failed to load');
     } finally {
       setLoading(false);
     }
@@ -48,8 +49,9 @@ export default function ApprovalsPage() {
       });
       setActionMessage('Approved');
       await load();
-    } catch (err: any) {
-      setActionMessage(err.message || 'Failed');
+    } catch (err) {
+      const error = err as Error;
+      setActionMessage(error.message || 'Failed');
     }
   };
 

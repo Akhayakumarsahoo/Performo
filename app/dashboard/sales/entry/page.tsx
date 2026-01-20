@@ -4,8 +4,8 @@
 import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createOutletSalesSchema, CreateOutletSalesInput } from '@/server/schemas/sales';
-import { api } from '@/lib/api';
+import { createOutletSalesSchema, CreateOutletSalesInput, CreateOutletSalesOutput } from '@/app/schemas/sales';
+import { apiFetch } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 
 const SalesEntryPage = () => {
@@ -17,7 +17,6 @@ const SalesEntryPage = () => {
     control,
     handleSubmit,
     formState: { errors },
-    watch,
   } = useForm<CreateOutletSalesInput>({
     resolver: zodResolver(createOutletSalesSchema),
     defaultValues: {
@@ -40,21 +39,19 @@ const SalesEntryPage = () => {
     },
   });
 
-  const onSubmit = async (data: CreateOutletSalesInput) => {
+  const onSubmit = async (data: CreateOutletSalesOutput) => {
     setIsSubmitting(true);
     setError(null);
     try {
-      await api.post('/sales/outlet', data);
+      await apiFetch('/sales/outlet', { method: 'POST', body: JSON.stringify(data) });
       router.push('/dashboard/sales'); // Redirect to a success or listing page
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'An unexpected error occurred.');
+    } catch (err) {
+      const error = err as Error;
+      setError(error.message || 'An unexpected error occurred.');
     } finally {
       setIsSubmitting(false);
     }
   };
-
-  // Watch totalSales to validate against billed payments sum
-  const totalSales = watch('totalSales');
 
   return (
     <div className="container mx-auto p-4 max-w-4xl">
@@ -69,7 +66,14 @@ const SalesEntryPage = () => {
             <Controller
               name="date"
               control={control}
-              render={({ field }) => <input {...field} type="date" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />}
+              render={({ field }) => (
+                <input
+                  {...field}
+                  type="date"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                  value={field.value instanceof Date ? field.value.toISOString().split('T')[0] : field.value}
+                />
+              )}
             />
             {errors.date && <p className="text-red-500 text-xs mt-1">{errors.date.message}</p>}
           </div>

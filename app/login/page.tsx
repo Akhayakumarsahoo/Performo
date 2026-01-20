@@ -41,8 +41,9 @@ export default function LoginPage() {
       });
       setAuth(data);
       router.push(roleToDefaultPath());
-    } catch (err: any) {
-      setError(err.message || 'Login failed');
+    } catch (err) {
+      const error = err as Error
+      setError(error.message || 'Login failed');
     } finally {
       setLoading(false);
     }

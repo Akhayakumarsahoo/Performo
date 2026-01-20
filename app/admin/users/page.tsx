@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import NavBar from '@/components/NavBar';
 import { Card } from '@/components/Card';
 import { apiFetch } from '@/lib/api';
@@ -27,7 +27,7 @@ export default function AdminUsersPage() {
 
   const isOwner = user?.role === 'owner';
 
-  const load = async () => {
+  const load = useCallback(async () => {
     if (!isOwner) {
       setLoading(false);
       return;
@@ -36,15 +36,16 @@ export default function AdminUsersPage() {
     try {
       const data = await apiFetch<User[]>('/admin/users');
       setUsers(data);
-    } catch (err: any) {
-      setMessage(err.message || 'Failed to load users');
+    } catch (err) {
+      const error = err as Error
+      setMessage(error.message || 'Failed to load users');
     }
     setLoading(false);
-  };
+  }, [isOwner]);
 
   useEffect(() => {
     load();
-  }, [isOwner]);
+  }, [isOwner, load]);
 
   const create = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,8 +58,9 @@ export default function AdminUsersPage() {
       setMessage('User created');
       setForm({ name: '', email: '', password: '', role: 'manager' });
       await load();
-    } catch (err: any) {
-      setMessage(err.message || 'Failed');
+    } catch (err) {
+      const error = err as Error
+      setMessage(error.message || 'Failed');
     }
   };
 

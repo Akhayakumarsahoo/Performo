@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import NavBar from '@/components/NavBar';
 import { Card } from '@/components/Card';
 import { apiFetch } from '@/lib/api';
@@ -36,7 +36,7 @@ export default function AdminOutletsPage() {
 
   const isOwner = user?.role === 'owner';
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const outlets = await apiFetch<Outlet[]>('/admin/outlets');
@@ -47,15 +47,16 @@ export default function AdminOutletsPage() {
         );
         setCompanySalespersons(company.salespersons || []);
       }
-    } catch (err: any) {
-      setMessage(err.message || 'Failed to load data');
+    } catch (err) {
+        const error = err as Error
+      setMessage(error.message || 'Failed to load data');
     }
     setLoading(false);
-  };
+  }, [isOwner]);
 
   useEffect(() => {
     if (user) load();
-  }, [user, isOwner]);
+  }, [user, isOwner, load]);
 
   const create = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,8 +77,9 @@ export default function AdminOutletsPage() {
       });
       setShowCreateForm(false);
       await load();
-    } catch (err: any) {
-      setMessage(err.message || 'Failed');
+    } catch (err) {
+        const error = err as Error
+      setMessage(error.message || 'Failed');
     }
   };
 
@@ -98,8 +100,9 @@ export default function AdminOutletsPage() {
       setMessage('Outlet updated');
       setEditingOutlet(null);
       await load();
-    } catch (err: any) {
-      setMessage(err.message || 'Failed to update');
+    } catch (err) {
+        const error = err as Error
+      setMessage(error.message || 'Failed to update');
     }
   };
 
@@ -113,8 +116,9 @@ export default function AdminOutletsPage() {
       setMessage('Outlet deleted');
       setOutletToDelete(null);
       await load();
-    } catch (err: any) {
-      setMessage(err.message || 'Failed to delete');
+    } catch (err) {
+        const error = err as Error
+      setMessage(error.message || 'Failed to delete');
     }
   };
 
@@ -132,8 +136,9 @@ export default function AdminOutletsPage() {
       setMessage('Salesperson added');
       setCompanySalespersons(res.salespersons);
       setNewSalesperson('');
-    } catch (err: any) {
-      setMessage(err.message || 'Failed to add salesperson');
+    } catch (err) {
+        const error = err as Error
+      setMessage(error.message || 'Failed to add salesperson');
     }
   };
 
@@ -149,8 +154,9 @@ export default function AdminOutletsPage() {
       );
       setMessage('Salesperson removed');
       setCompanySalespersons(res.salespersons);
-    } catch (err: any) {
-      setMessage(err.message || 'Failed to remove salesperson');
+    } catch (err) {
+        const error = err as Error
+      setMessage(error.message || 'Failed to remove salesperson');
     }
   };
 

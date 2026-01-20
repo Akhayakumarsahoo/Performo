@@ -25,11 +25,17 @@ ChartJS.register(
   Legend
 );
 
+type Stats = {
+  totalSales: number;
+  totalTransactions: number;
+  avgTransactionValue: number;
+};
+
 const OutletPage = () => {
   const { outletId } = useParams();
   const [outlet, setOutlet] = useState<IOutlet | null>(null);
   const [sales, setSales] = useState<IDailySales[]>([]);
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useAuthState();
@@ -37,12 +43,12 @@ const OutletPage = () => {
   useEffect(() => {
     const fetchOutletData = async () => {
       try {
-        const response = await apiFetch(`/dashboard/outlet/${outletId}`);
+        const response = await apiFetch<{outlet: IOutlet, sales: IDailySales[], stats: Stats}>(`/dashboard/outlet/${outletId}`);
         setOutlet(response.outlet);
         setSales(response.sales);
         setStats(response.stats);
       } catch (error) {
-        console.error('Error fetching outlet data:', error);
+        console.error('Error fetching outlet data:', error as Error);
       } finally {
         setLoading(false);
       }

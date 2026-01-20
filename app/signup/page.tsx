@@ -51,8 +51,9 @@ export default function SignupPage() {
       });
       setAuth(data);
       router.push(roleToDefaultPath());
-    } catch (err: any) {
-      setError(err.message || 'Signup failed');
+    } catch (err) {
+      const error = err as Error;
+      setError(error.message || 'Signup failed');
     } finally {
       setLoading(false);
     }

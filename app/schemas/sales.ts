@@ -1,3 +1,4 @@
+
 import { z } from "zod";
 
 // A detailed payment schema including online options
@@ -70,6 +71,10 @@ export const createOutletSalesSchema = z
       path: ["billedPayments"],
     }
   );
+
+export type CreateOutletSalesInput = z.input<typeof createOutletSalesSchema>;
+export type CreateOutletSalesOutput = z.output<typeof createOutletSalesSchema>;
+
 
 // This schema may be used for a separate approval step if needed in the future,
 // but for now, the primary sales entry includes all necessary fields.
