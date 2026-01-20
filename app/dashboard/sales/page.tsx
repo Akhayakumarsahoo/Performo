@@ -1,14 +1,17 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useForm, Controller, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createOutletSalesSchema, CreateOutletSalesInput, CreateOutletSalesOutput } from '@/app/schemas/sales';
 import { apiFetch } from '@/lib/api';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/useAuth';
 
 const SalesEntryPage = () => {
   const router = useRouter();
+  const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -40,6 +43,7 @@ const SalesEntryPage = () => {
     setIsSubmitting(true);
     setError(null);
     try {
+      // The user context from useAuth will be automatically sent by apiFetch
       await apiFetch('/sales/outlet', { method: 'POST', body: JSON.stringify(data) });
       router.push('/dashboard/sales'); // Redirect to a success or listing page
     } catch (err) {
@@ -49,6 +53,33 @@ const SalesEntryPage = () => {
       setIsSubmitting(false);
     }
   };
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <p className="text-slate-600">Loading user information...</p>
+      </div>
+    );
+  }
+
+  if ((user.role === 'admin' || user.role === 'manager') && !user.outletId) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex justify-center p-4">
+        <div className="w-full max-w-4xl bg-white rounded-2xl p-6 shadow-sm text-center">
+          <h1 className="text-xl font-bold mb-4 text-slate-800">No Outlet Assigned</h1>
+          <p className="text-slate-600">
+            As an {user.role}, you are not assigned to a specific outlet. You must select an outlet before you can enter sales data.
+          </p>
+          <p className="mt-4">
+            {/* This link is a placeholder, assuming you have an outlets management page */}
+            <Link href="/dashboard/outlets" className="text-blue-600 hover:underline font-semibold">
+              Go to the Outlets page to select an outlet
+            </Link>
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 flex justify-center p-4">
