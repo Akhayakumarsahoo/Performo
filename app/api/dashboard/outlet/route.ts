@@ -6,9 +6,9 @@ import { Company } from '@/server/models/Company';
 import { auth } from '@/server/middleware/auth';
 import { Outlet } from '@/server/models/Outlet';
 
-export async function GET(req: Request) {
+export async function GET() {
   try {
-    const user = await auth(req);
+    const user = await auth();
     if (!user || user.role !== 'manager') {
       return new NextResponse('Forbidden', { status: 403 });
     }
