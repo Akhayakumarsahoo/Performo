@@ -43,7 +43,11 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-export function requireOwnerAuth(req: Request, res: Response, next: NextFunction) {
+export function requireOwnerAuth(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
   if (!req.user || req.user.role !== "owner") {
     return res.status(403).json({ message: "Forbidden" });
   }
@@ -76,29 +80,27 @@ export function requireOutletAuth(
   }
 }
 
-export const auth = (): Promise<AuthUser> => {
-  return new Promise((resolve, reject) => {
-    const headersList = headers();
-    const bearer = headersList.get("authorization");
-    const token =
-      typeof bearer === "string" && bearer.startsWith("Bearer ")
-        ? bearer.slice(7)
-        : undefined;
+export const auth = async (): Promise<AuthUser> => {
+  const headersList = headers();
+  const bearer = headersList.get("authorization");
+  const token =
+    typeof bearer === "string" && bearer.startsWith("Bearer ")
+      ? bearer.slice(7)
+      : undefined;
 
-    const cookieStore = cookies();
-    const fallbackToken = cookieStore.get("accessToken")?.value;
+  const cookieStore = cookies();
+  const fallbackToken = cookieStore.get("accessToken")?.value;
 
-    const jwtToken = token || fallbackToken;
+  const jwtToken = token || fallbackToken;
 
-    if (!jwtToken) {
-      return reject(new Error("Unauthenticated"));
-    }
+  if (!jwtToken) {
+    throw new Error("Unauthenticated");
+  }
 
-    try {
-      const decoded = jwt.verify(jwtToken, env.JWT_SECRET) as AuthUser;
-      resolve(decoded);
-    } catch (err) {
-      reject(new Error("Invalid or expired token"));
-    }
-  });
+  try {
+    const decoded = jwt.verify(jwtToken, env.JWT_SECRET) as AuthUser;
+    return decoded;
+  } catch (err) {
+    throw new Error("Invalid or expired token");
+  }
 };
