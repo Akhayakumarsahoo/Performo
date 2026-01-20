@@ -69,8 +69,9 @@ export default function OutletSalesPage() {
         throw new Error(text || 'Failed to submit');
       }
       setMessage('Sales report submitted.');
-    } catch (err: any) {
-      setMessage(err.message || 'Failed to submit');
+    } catch (err) {
+      const error = err as Error;
+      setMessage(error.message || 'Failed to submit');
     } finally {
       setLoading(false);
     }

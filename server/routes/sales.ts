@@ -3,7 +3,7 @@ import { requireAuth } from "../middleware/auth";
 import { DailySales } from "../models/DailySales";
 import { isValidObjectId } from "mongoose";
 import { validateBody } from "../middleware/validate";
-import { createOutletSalesSchema, createSalesSchema } from "../schemas/sales";
+import { createOutletSalesSchema, createSalesSchema } from "@/app/schemas/sales";
 
 const router = Router();
 
@@ -33,7 +33,6 @@ router.post("/", requireAuth, validateBody(createSalesSchema), async (req, res, 
       totalSales,
       billedPayments,
       actualPayments,
-      actualCashInBox,
       evidenceImages,
       cashExpenses,
       cashWithdrawal,
@@ -59,7 +58,6 @@ router.post("/", requireAuth, validateBody(createSalesSchema), async (req, res, 
       totalSales,
       billedPayments,
       actualPayments,
-      actualCashInBox,
       evidenceImages,
       cashExpenses,
       cashWithdrawal,
@@ -80,7 +78,6 @@ router.post("/outlet", requireAuth, validateBody(createOutletSalesSchema), async
       totalSales,
       billedPayments,
       actualPayments,
-      actualCashInBox,
       enteredByName,
       evidenceImages,
       cashExpenses,
@@ -108,7 +105,6 @@ router.post("/outlet", requireAuth, validateBody(createOutletSalesSchema), async
       totalSales,
       billedPayments,
       actualPayments,
-      actualCashInBox,
       enteredByName,
       evidenceImages,
       cashExpenses,

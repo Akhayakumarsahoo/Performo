@@ -17,7 +17,7 @@ const SalesEntryPage = () => {
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm<CreateOutletSalesInput, any, CreateOutletSalesOutput>({
+  } = useForm<CreateOutletSalesInput, undefined, CreateOutletSalesOutput>({
     resolver: zodResolver(createOutletSalesSchema),
     defaultValues: {
       date: new Date().toISOString().split('T')[0],

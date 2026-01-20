@@ -55,8 +55,10 @@ export default function AdminOutletsPage() {
   }, [isOwner]);
 
   useEffect(() => {
-    if (user) load();
-  }, [user, isOwner, load]);
+    if (user) {
+      load();
+    }
+  }, [user, isOwner]);
 
   const create = async (e: React.FormEvent) => {
     e.preventDefault();

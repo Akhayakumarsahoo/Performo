@@ -49,8 +49,9 @@ export default function OutletLoginPage() {
       const data = (await res.json()) as OutletLoginResponse;
       setOutletSession({ token: data.token, outlet: data.outlet });
       router.push('/outlet/sales');
-    } catch (err: any) {
-      setError(err.message || 'Login failed');
+    } catch (err) {
+      const error = err as Error;
+      setError(error.message || 'Login failed');
     } finally {
       setLoading(false);
     }
