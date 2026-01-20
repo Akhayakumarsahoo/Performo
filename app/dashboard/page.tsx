@@ -50,12 +50,19 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-slate-50">
       <NavBar />
       <main className="mx-auto w-full max-w-5xl space-y-4 px-4 py-4">
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+          <Link href="/dashboard/sales/entry" className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+              Add New Sales
+          </Link>
+        </div>
         <Card>
           <div className="flex items-center justify-between">
             <div>
               <div className="text-sm text-slate-500">Company total</div>
               <div className="text-2xl font-semibold">
-                ₹{data.totals.achieved.toLocaleString()}
+                
+{data.totals.achieved.toLocaleString()}
               </div>
             </div>
             <div className="text-right text-sm">
@@ -63,7 +70,8 @@ export default function AdminDashboard() {
                 {data.totals.percent.toFixed(1)}%
               </div>
               <div className="text-slate-500">
-                Target ₹{data.totals.target.toLocaleString()}
+                Target 
+{data.totals.target.toLocaleString()}
               </div>
             </div>
           </div>
@@ -83,14 +91,17 @@ export default function AdminDashboard() {
                   <div className="text-right text-sm">
                     <div className="font-semibold">{s.percent.toFixed(1)}%</div>
                     <div className="text-slate-500">
-                      ₹{s.achieved.toLocaleString()} / ₹
+                      
+{s.achieved.toLocaleString()} / 
                       {s.target.toLocaleString()}
                     </div>
                   </div>
                 </div>
                 <div className="mt-2 flex gap-2 text-xs text-slate-600">
-                  <span>Remaining: ₹{s.remainingTarget.toLocaleString()}</span>
-                  <span>| Forecast: ₹{s.forecastedEnd.toLocaleString()}</span>
+                  <span>Remaining: 
+{s.remainingTarget.toLocaleString()}</span>
+                  <span>| Forecast: 
+{s.forecastedEnd.toLocaleString()}</span>
                 </div>
                 {s.achievedUnapproved > 0 && (
                   <div className="mt-2 rounded-md bg-amber-50 px-2 py-1 text-xs">
@@ -99,7 +110,8 @@ export default function AdminDashboard() {
                         ⏳ Pending Approval:
                       </span>
                       <span className="font-medium text-amber-800">
-                        ₹{s.achievedUnapproved.toLocaleString()}
+                        
+{s.achievedUnapproved.toLocaleString()}
                       </span>
                       <span className="text-amber-600">
                         ({s.pendingApprovals} entries)
