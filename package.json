@@ -11,6 +11,7 @@
     "api:dev": "tsx watch --tsconfig server/tsconfig.json server/index.ts"
   },
   "dependencies": {
+    "@hookform/resolvers": "^3.9.0",
     "bcryptjs": "^3.0.3",
     "chart.js": "^4.5.1",
     "chartjs": "^0.3.24",
@@ -32,6 +33,7 @@
     "react": "19.2.3",
     "react-chartjs-2": "^5.3.1",
     "react-dom": "19.2.3",
+    "react-hook-form": "^7.52.1",
     "zod": "^4.3.5"
   },
   "devDependencies": {
