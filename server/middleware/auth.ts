@@ -1,6 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import env from "../config/env";
+import { headers } from "next/headers";
+import { cookies } from "next/headers";
 
 export type AuthUser = {
   userId: string;
@@ -74,11 +76,18 @@ export function requireOutletAuth(
   }
 }
 
-export const auth = (req: any): Promise<AuthUser> => {
+export const auth = (): Promise<AuthUser> => {
   return new Promise((resolve, reject) => {
-    const bearer = req.headers.get?.("authorization");
-    const token = typeof bearer === 'string' && bearer.startsWith("Bearer ") ? bearer.slice(7) : undefined;
-    const fallbackToken = req.cookies?.get("accessToken")?.value;
+    const headersList = headers();
+    const bearer = headersList.get("authorization");
+    const token =
+      typeof bearer === "string" && bearer.startsWith("Bearer ")
+        ? bearer.slice(7)
+        : undefined;
+
+    const cookieStore = cookies();
+    const fallbackToken = cookieStore.get("accessToken")?.value;
+
     const jwtToken = token || fallbackToken;
 
     if (!jwtToken) {
