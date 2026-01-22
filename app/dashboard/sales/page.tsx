@@ -1,23 +1,25 @@
 'use client';
 
-import { useState } from 'react';
-import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { useForm, Controller, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createOutletSalesSchema, CreateOutletSalesInput, CreateOutletSalesOutput } from '@/app/schemas/sales';
-import { apiFetch } from '@/lib/api';
+import apiClient from '@/lib/apiClient';
 import { useRouter } from 'next/navigation';
 import { useAuthState } from '@/lib/useAuth';
+import { getAllOutlets } from '@/lib/outlet';
 
 const SalesEntryPage = () => {
   const router = useRouter();
   const { user } = useAuthState();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [outlets, setOutlets] = useState<{ id: string; name: string }[]>([]);
 
   const {
     control,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<CreateOutletSalesInput, undefined, CreateOutletSalesOutput>({
     resolver: zodResolver(createOutletSalesSchema),
@@ -36,16 +38,26 @@ const SalesEntryPage = () => {
         card: 0,
       },
       enteredByName: '',
+      cashWithdrawal: 0,
+      cashExpenses: 0,
+      expenseReason: '',
     },
   });
+
+  const cashExpenses = watch('cashExpenses');
+
+  useEffect(() => {
+    if (user && (user.role === 'owner' || user.role === 'manager') && !user.outletId) {
+      getAllOutlets().then(setOutlets).catch(console.error);
+    }
+  }, [user]);
 
   const onSubmit: SubmitHandler<CreateOutletSalesOutput> = async (data) => {
     setIsSubmitting(true);
     setError(null);
     try {
-      // The user context from useAuth will be automatically sent by apiFetch
-      await apiFetch('/sales/outlet', { method: 'POST', body: JSON.stringify(data) });
-      router.push('/dashboard/sales'); // Redirect to a success or listing page
+      await apiClient.post('/sales/outlet', data);
+      router.push('/dashboard/sales');
     } catch (err) {
       const error = err as Error;
       setError(error.message || 'An unexpected error occurred.');
@@ -62,30 +74,37 @@ const SalesEntryPage = () => {
     );
   }
 
-  if ((user.role === 'owner' || user.role === 'manager') && !user.outletId) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex justify-center p-4">
-        <div className="w-full max-w-4xl bg-white rounded-2xl p-6 shadow-sm text-center">
-          <h1 className="text-xl font-bold mb-4 text-slate-800">No Outlet Assigned</h1>
-          <p className="text-slate-600">
-            As an {user.role}, you are not assigned to a specific outlet. You must select an outlet before you can enter sales data.
-          </p>
-          <p className="mt-4">
-            {/* This link is a placeholder, assuming you have an outlets management page */}
-            <Link href="/dashboard/outlets" className="text-blue-600 hover:underline font-semibold">
-              Go to the Outlets page to select an outlet
-            </Link>
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-slate-50 flex justify-center p-4">
       <div className="w-full max-w-4xl bg-white rounded-2xl p-6 shadow-sm">
         <h1 className="text-xl font-bold mb-6 text-slate-800">Daily Sales Entry</h1>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+          {(user.role === 'owner' || user.role === 'manager') && !user.outletId && (
+            <fieldset>
+              <legend className="text-lg font-semibold text-slate-700 border-b w-full pb-2 mb-4">Outlet Information</legend>
+              <div>
+                <label htmlFor="outletId" className="block text-sm font-medium text-slate-600">Select Outlet</label>
+                <Controller
+                  name="outletId"
+                  control={control}
+                  render={({ field }) => (
+                    <select
+                      {...field}
+                      className="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-slate-400 focus:ring focus:ring-slate-200 focus:ring-opacity-50"
+                    >
+                      <option value="">Select an outlet</option>
+                      {outlets.map((outlet) => (
+                        <option key={outlet.id} value={outlet.id}>
+                          {outlet.name}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                />
+                {errors.outletId && <p className="text-red-600 text-xs mt-1">{errors.outletId.message}</p>}
+              </div>
+            </fieldset>
+          )}
 
           <fieldset>
             <legend className="text-lg font-semibold text-slate-700 border-b w-full pb-2 mb-4">General Information</legend>
@@ -182,7 +201,7 @@ const SalesEntryPage = () => {
                 <Controller
                   name="actualPayments.cash"
                   control={control}
-                  render={({ field }) => <input {...field} type="number" step="0.01" className="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-slate-400 focus:ring focus:ring-slate-200 focus:ring-opacity-50" onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />}
+                  render={({ field }) => <input {...field} type="number" step="0.01" className="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-slate-400 focus:ring focus:ring-slate-200 focus:ring-opacity-50" onChange={e => field.onChange(.target.value) || 0)} />}
                 />
               </div>
               <div>
@@ -201,6 +220,38 @@ const SalesEntryPage = () => {
                   render={({ field }) => <input {...field} type="number" step="0.01" className="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-slate-400 focus:ring focus:ring-slate-200 focus:ring-opacity-50" onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />}
                 />
               </div>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend className="text-lg font-semibold text-slate-700 border-b w-full pb-2 mb-4">Cashbox Transactions</legend>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="cashWithdrawal" className="block text-sm font-medium text-slate-600">Cash Withdrawal</label>
+                <Controller
+                  name="cashWithdrawal"
+                  control={control}
+                  render={({ field }) => <input {...field} type="number" step="0.01" className="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-slate-400 focus:ring focus:ring-slate-200 focus:ring-opacity-50" onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />}
+                />
+              </div>
+              <div>
+                <label htmlFor="cashExpenses" className="block text-sm font-medium text-slate-600">Cash Expenses</label>
+                <Controller
+                  name="cashExpenses"
+                  control={control}
+                  render={({ field }) => <input {...field} type="number" step="0.01" className="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-slate-400 focus:ring focus:ring-slate-200 focus:ring-opacity-50" onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />}
+                />
+              </div>
+              {cashExpenses > 0 && (
+                <div className="md:col-span-2">
+                  <label htmlFor="expenseReason" className="block text-sm font-medium text-slate-600">Reason for Expense</label>
+                  <Controller
+                    name="expenseReason"
+                    control={control}
+                    render={({ field }) => <input {...field} className="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-slate-400 focus:ring focus:ring-slate-200 focus:ring-opacity-50" />}
+                  />
+                </div>
+              )}
             </div>
           </fieldset>
 

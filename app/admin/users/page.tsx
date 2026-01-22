@@ -1,137 +1,160 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
-import NavBar from '@/components/NavBar';
-import { Card } from '@/components/Card';
-import { apiFetch } from '@/lib/api';
+import { useEffect, useState } from 'react';
+import { useForm, Controller, SubmitHandler } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import apiClient from '@/lib/apiClient';
 import { useAuthState } from '@/lib/useAuth';
 
-type User = {
+const userSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+  role: z.enum(['admin', 'manager', 'salesperson']),
+  outletId: z.string().optional(),
+});
+
+type UserInput = z.infer<typeof userSchema>;
+
+interface IUser {
   _id: string;
   name: string;
   email: string;
-  role: string;
-};
+  role: 'admin' | 'manager' | 'salesperson';
+  outletId?: string;
+}
 
-export default function AdminUsersPage() {
+const UsersPage = () => {
   const { user } = useAuthState();
-  const [users, setUsers] = useState<User[]>([]);
-  const [form, setForm] = useState({
-    name: '',
-    email: '',
-    password: '',
-    role: 'manager',
-  });
-  const [message, setMessage] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [users, setUsers] = useState<IUser[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const isOwner = user?.role === 'owner';
-
-  const load = useCallback(async () => {
-    if (!isOwner) {
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    try {
-      const data = await apiFetch<User[]>('/admin/users');
-      setUsers(data);
-    } catch (err) {
-      const error = err as Error
-      setMessage(error.message || 'Failed to load users');
-    }
-    setLoading(false);
-  }, [isOwner]);
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<UserInput>({ resolver: zodResolver(userSchema) });
 
   useEffect(() => {
-    if (isOwner) {
-      load();
-    }
-  }, [isOwner]);
+    const fetchUsers = async () => {
+      try {
+        const response = await apiClient.get('/admin/users');
+        setUsers(response.data);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      }
+    };
 
-  const create = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setMessage(null);
+    if (user?.role === 'admin') {
+      fetchUsers();
+    }
+  }, [user]);
+
+  const onSubmit: SubmitHandler<UserInput> = async (data) => {
+    setIsSubmitting(true);
+    setError(null);
     try {
-      await apiFetch('/admin/users', {
-        method: 'POST',
-        body: JSON.stringify(form),
-      });
-      setMessage('User created');
-      setForm({ name: '', email: '', password: '', role: 'manager' });
-      await load();
+      await apiClient.post('/admin/users', data);
+      reset();
+      const response = await apiClient.get('/admin/users');
+      setUsers(response.data);
     } catch (err) {
-      const error = err as Error
-      setMessage(error.message || 'Failed');
+      const error = err as Error;
+      setError(error.message || 'An unexpected error occurred.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-slate-50">
-      <NavBar />
-      <main className="mx-auto w-full max-w-5xl space-y-4 px-4 py-4">
-        {isOwner ? (
-          <>
-            <Card>
-              <h1 className="text-lg font-semibold">Create User</h1>
-              <form className="mt-4 grid gap-3 sm:grid-cols-2" onSubmit={create}>
-                <input
-                  placeholder="Name"
-                  className="rounded-md border border-slate-200 px-3 text-black py-2"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  required
-                />
-                <input
-                  placeholder="Email"
-                  type="email"
-                  className="rounded-md border border-slate-200 px-3 text-black py-2"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  required
-                />
-                <input
-                  type="password"
-                  placeholder="Password"
-                  className="rounded-md border text-black border-slate-200 px-3 py-2"
-                  value={form.password}
-                  onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  required
-                />
-                <select
-                  className="rounded-md border border-slate-200 px-3 text-black py-2"
-                  value={form.role}
-                  onChange={(e) => setForm({ ...form, role: e.target.value })}
-                >
-                  <option value="manager">Manager</option>
-                </select>
-                <button className="rounded-md bg-black py-2 text-white font-semibold sm:col-span-2">
-                  Create
-                </button>
-              </form>
-              {message && (
-                <div className="mt-2 text-sm text-slate-600">{message}</div>
-              )}
-            </Card>
+  if (user?.role !== 'admin') {
+    return <div>You are not authorized to view this page.</div>;
+  }
 
-            <Card>
-              <h1 className="text-lg font-semibold">Existing Users</h1>
-              {loading && <div className="mt-2">Loading...</div>}
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                {users.map((user) => (
-                  <div key={user._id} className="rounded-md border border-slate-200 p-4">
-                    <div className="font-semibold">{user.name}</div>
-                    <div className="text-sm text-slate-500">{user.email}</div>
-                    <div className="text-sm text-slate-500">{user.role}</div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          </>
-        ) : (
-          <div className="text-center text-slate-500 pt-10">You do not have permission to view this page.</div>
-        )}
-      </main>
+  return (
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">User Management</h1>
+
+      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 className="text-xl font-semibold mb-4">Create User</h2>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="name">Name</label>
+              <Controller
+                name="name"
+                control={control}
+                render={({ field }) => <input {...field} className="w-full rounded-md border-gray-300" />}
+              />
+              {errors.name && <p className="text-red-500">{errors.name.message}</p>}
+            </div>
+            <div>
+              <label htmlFor="email">Email</label>
+              <Controller
+                name="email"
+                control={control}
+                render={({ field }) => <input {...field} className="w-full rounded-md border-gray-300" />}
+              />
+              {errors.email && <p className="text-red-500">{errors.email.message}</p>}
+            </div>
+            <div>
+              <label htmlFor="password">Password</label>
+              <Controller
+                name="password"
+                control={control}
+                render={({ field }) => <input {...field} type="password" className="w-full rounded-md border-gray-300" />}
+              />
+              {errors.password && <p className="text-red-500">{errors.password.message}</p>}
+            </div>
+            <div>
+              <label htmlFor="role">Role</label>
+              <Controller
+                name="role"
+                control={control}
+                render={({ field }) => (
+                  <select {...field} className="w-full rounded-md border-gray-300">
+                    <option value="salesperson">Salesperson</option>
+                    <option value="manager">Manager</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                )}
+              />
+            </div>
+          </div>
+          {error && <p className="text-red-500">{error}</p>}
+          <button type="submit" disabled={isSubmitting} className="bg-black text-white px-4 py-2 rounded-md">
+            {isSubmitting ? 'Creating...' : 'Create User'}
+          </button>
+        </form>
+      </div>
+
+      <div>
+        <h2 className="text-xl font-semibold mb-4">Users</h2>
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white">
+            <thead>
+              <tr>
+                <th className="py-2 px-4 border-b">Name</th>
+                <th className="py-2 px-4 border-b">Email</th>
+                <th className="py-2 px-4 border-b">Role</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((user) => (
+                <tr key={user._id}>
+                  <td className="py-2 px-4 border-b">{user.name}</td>
+                  <td className="py-2 px-4 border-b">{user.email}</td>
+                  <td className="py-2 px-4 border-b">{user.role}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
-}
+};
+
+export default UsersPage;

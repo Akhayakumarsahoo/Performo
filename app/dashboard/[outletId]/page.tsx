@@ -14,7 +14,7 @@ import {
 import { useAuthState } from '@/lib/useAuth';
 import { IOutlet, IDailySales } from '@/lib/definitions';
 import { Card } from '@/components/Card';
-import { apiFetch } from '@/lib/api';
+import apiClient from '@/lib/apiClient';
 
 ChartJS.register(
   CategoryScale,
@@ -29,6 +29,8 @@ type Stats = {
   totalSales: number;
   totalTransactions: number;
   avgTransactionValue: number;
+  monthlyTarget: number;
+  targetAchieved: number;
 };
 
 const OutletPage = () => {
@@ -43,10 +45,10 @@ const OutletPage = () => {
   useEffect(() => {
     const fetchOutletData = async () => {
       try {
-        const response = await apiFetch<{outlet: IOutlet, sales: IDailySales[], stats: Stats}>(`/dashboard/outlet/${outletId}`);
-        setOutlet(response.outlet);
-        setSales(response.sales);
-        setStats(response.stats);
+        const { data } = await apiClient.get<{outlet: IOutlet, sales: IDailySales[], stats: Stats}>(`/dashboard/outlet/${outletId}`);
+        setOutlet(data.outlet);
+        setSales(data.sales);
+        setStats(data.stats);
       } catch (error) {
         console.error('Error fetching outlet data:', error as Error);
       } finally {
@@ -82,9 +84,10 @@ const OutletPage = () => {
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">{outlet.name}</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
         <Card title="Total Sales" value={stats?.totalSales} />
-        <Card title="Total Transactions" value={stats?.totalTransactions} />
+        <Card title="Monthly Target" value={stats?.monthlyTarget} />
+        <Card title="Target Achieved" value={`${stats?.targetAchieved.toFixed(2)}%`} />
         <Card
           title="Average Transaction Value"
           value={stats?.avgTransactionValue}

@@ -49,6 +49,7 @@ export const createSalesSchema = z
 // Schema for sales creation by an authenticated outlet user
 export const createOutletSalesSchema = z
   .object({
+    outletId: z.string().optional(),
     date: z.string().or(z.date()).transform((v) => new Date(v)),
     totalSales: z.number().min(0),
     billedPayments: detailedPaymentsSchema,
@@ -56,7 +57,9 @@ export const createOutletSalesSchema = z
     enteredByName: z.string().min(1),
     evidenceImages: z.array(z.string().url()).optional(),
     cashExpenses: z.number().min(0).optional(),
+    expenseReason: z.string().optional(),
     cashWithdrawal: z.number().min(0).optional(),
+    withdrawnBy: z.string().optional(),
   })
   .refine(
     (data) => {

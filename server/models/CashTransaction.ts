@@ -1,26 +1,34 @@
-import { Schema, Types, model } from "mongoose";
+import { Schema, model, models, Document } from 'mongoose';
 
-const CashTransactionSchema = new Schema(
+export interface ICashTransaction extends Document {
+  date: Date;
+  outletId: Schema.Types.ObjectId;
+  companyId: Schema.Types.ObjectId;
+  type: 'sales_cash' | 'expense' | 'withdrawal';
+  amount: number;
+  withdrawnBy?: Schema.Types.ObjectId;
+  reason?: string;
+  approved: boolean;
+}
+
+const CashTransactionSchema = new Schema<ICashTransaction>(
   {
-    companyId: { type: Types.ObjectId, ref: "Company", required: true, index: true },
-    outletId: { type: Types.ObjectId, ref: "Outlet", required: true, index: true },
-    type: { 
-      type: String, 
-      enum: ["sales_cash", "expense", "withdrawal"], 
-      required: true 
-    },
-    amount: { type: Number, required: true }, // Positive for inflow, negative for outflow
-    reason: { type: String, required: true },
-    enteredBy: { type: String, required: true }, // Person who made the transaction
     date: { type: Date, required: true },
-    relatedSalesId: { type: Types.ObjectId, ref: "DailySales" }, // Optional: link to sales record
+    outletId: { type: Schema.Types.ObjectId, ref: 'Outlet', required: true },
+    companyId: { type: Schema.Types.ObjectId, ref: 'Company', required: true },
+    type: {
+      type: String,
+      enum: ['sales_cash', 'expense', 'withdrawal'],
+      required: true,
+    },
+    amount: { type: Number, required: true },
+    withdrawnBy: { type: Schema.Types.ObjectId, ref: 'User' },
+    reason: { type: String },
     approved: { type: Boolean, default: false },
-    approvedBy: { type: Types.ObjectId, ref: "User" },
   },
   { timestamps: true }
 );
 
-CashTransactionSchema.index({ companyId: 1, outletId: 1, date: -1 });
-CashTransactionSchema.index({ type: 1, date: -1 });
+const CashTransaction = models.CashTransaction || model<ICashTransaction>('CashTransaction', CashTransactionSchema);
 
-export const CashTransaction = model("CashTransaction", CashTransactionSchema);
+export default CashTransaction;

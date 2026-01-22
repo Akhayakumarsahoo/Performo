@@ -5,6 +5,8 @@ export interface IOutlet {
   name: string;
   companyId: Types.ObjectId | string;
   active: boolean;
+  cashInHand: number;
+  monthlyTarget: number;
 }
 
 export interface IDailySales {
@@ -15,4 +17,18 @@ export interface IDailySales {
   totalSales: number;
   totalTransactions: number;
   approved: boolean;
+}
+
+export interface ICashTransaction {
+  _id: Types.ObjectId | string;
+  date: Date | string;
+  outletId: Types.ObjectId | string;
+  companyId: Types.ObjectId | string;
+  type: 'sales_cash' | 'expense' | 'withdrawal';
+  amount: number;
+  reason?: string;
+  withdrawnBy?: Types.ObjectId | string;
+  approved: boolean;
+  approvedBy?: Types.ObjectId | string;
+  rejectionReason?: string;
 }

@@ -1,32 +1,20 @@
-import { Schema, Types, model } from "mongoose";
+import { Schema, model, models, Document } from 'mongoose';
 
-const IncentiveSlabSchema = new Schema(
-  {
-    percent: { type: Number, required: true },
-    bonus: { type: Number, required: true },
-  },
-  { _id: false }
-);
+export interface IOutlet extends Document {
+  name: string;
+  companyId: Schema.Types.ObjectId;
+  cashInHand: number;
+}
 
-const OutletSchema = new Schema(
+const OutletSchema = new Schema<IOutlet>(
   {
-    companyId: { type: Types.ObjectId, ref: "Company", required: true, index: true },
     name: { type: String, required: true },
-    outletId: { type: String, required: true, unique: true },
-    city: { type: String },
-    // Authentication: password for outlet-level login (hashed)
-    passwordHash: { type: String, required: true },
-    // Optional: bind this outlet to a single device (first successful login)
-    deviceId: { type: String },
-    deviceBoundAt: { type: Date },
-    monthlyTarget: { type: Number, default: 0 },
-    cashBox: { type: Number, default: 0 },
-    incentiveSlabs: { type: [IncentiveSlabSchema], default: [] },
-    active: { type: Boolean, default: true },
+    companyId: { type: Schema.Types.ObjectId, ref: 'Company', required: true },
+    cashInHand: { type: Number, default: 0 },
   },
   { timestamps: true }
 );
 
-OutletSchema.index({ companyId: 1, name: 1 }, { unique: true });
+const Outlet = models.Outlet || model<IOutlet>('Outlet', OutletSchema);
 
-export const Outlet = model("Outlet", OutletSchema);
+export default Outlet;

@@ -3,8 +3,10 @@
 import { useEffect, useState, useCallback } from 'react';
 import NavBar from '@/components/NavBar';
 import { Card } from '@/components/Card';
-import { apiFetch } from '@/lib/api';
-import { useAuthState } from '@/lib/useAuth';
+import apiClient from '@/lib/apiClient';
+import { useAuth } from '@/lib/auth';
+import { hasPermission, PERMISSIONS } from '@/lib/permissions';
+import { UserRole } from '@/lib/roles';
 
 type Outlet = {
   _id: string;
@@ -16,7 +18,7 @@ type Outlet = {
 };
 
 export default function AdminOutletsPage() {
-  const { user } = useAuthState();
+  const auth = useAuth();
   const [items, setItems] = useState<Outlet[]>([]);
   const [companySalespersons, setCompanySalespersons] = useState<string[]>([]);
   const [newSalesperson, setNewSalesperson] = useState('');
@@ -34,40 +36,38 @@ export default function AdminOutletsPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
 
-  const isOwner = user?.role === 'owner';
+  const can = (permission: keyof typeof PERMISSIONS) => {
+    return auth?.user && hasPermission(auth.user.role as UserRole, permission);
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const outlets = await apiFetch<Outlet[]>('/admin/outlets');
+      const { data: outlets } = await apiClient.get<Outlet[]>('/admin/outlets');
       setItems(outlets);
-      if (isOwner) {
-        const company = await apiFetch<{ salespersons: string[] }>(
+      if (can('company:read:salespersons')) {
+        const { data: company } = await apiClient.get<{ salespersons: string[] }>(
           '/admin/company/salespersons'
         );
         setCompanySalespersons(company.salespersons || []);
       }
-    } catch (err) {
-        const error = err as Error
-      setMessage(error.message || 'Failed to load data');
+    } catch (err: any) {
+      setMessage(err.response?.data?.message || 'Failed to load data');
     }
     setLoading(false);
-  }, [isOwner]);
+  }, [auth?.user?.role]);
 
   useEffect(() => {
-    if (user) {
+    if (auth?.user) {
       load();
     }
-  }, [user, isOwner]);
+  }, [auth?.user, load]);
 
   const create = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);
     try {
-      await apiFetch('/admin/outlets', {
-        method: 'POST',
-        body: JSON.stringify(form),
-      });
+      await apiClient.post('/admin/outlets', form);
       setMessage('Outlet created');
       setForm({
         name: '',
@@ -79,9 +79,8 @@ export default function AdminOutletsPage() {
       });
       setShowCreateForm(false);
       await load();
-    } catch (err) {
-        const error = err as Error
-      setMessage(error.message || 'Failed');
+    } catch (err: any) {
+      setMessage(err.response?.data?.message || 'Failed');
     }
   };
 
@@ -95,16 +94,12 @@ export default function AdminOutletsPage() {
     setMessage(null);
     try {
       const { _id, ...updateData } = editingOutlet;
-      await apiFetch(`/admin/outlets/${_id}`, {
-        method: 'PATCH',
-        body: JSON.stringify(updateData),
-      });
+      await apiClient.patch(`/admin/outlets/${_id}`, updateData);
       setMessage('Outlet updated');
       setEditingOutlet(null);
       await load();
-    } catch (err) {
-        const error = err as Error
-      setMessage(error.message || 'Failed to update');
+    } catch (err: any) {
+      setMessage(err.response?.data?.message || 'Failed to update');
     }
   };
 
@@ -112,15 +107,12 @@ export default function AdminOutletsPage() {
     if (!outletToDelete) return;
     setMessage(null);
     try {
-      await apiFetch(`/admin/outlets/${outletToDelete._id}`, {
-        method: 'DELETE',
-      });
+      await apiClient.delete(`/admin/outlets/${outletToDelete._id}`);
       setMessage('Outlet deleted');
       setOutletToDelete(null);
       await load();
-    } catch (err) {
-        const error = err as Error
-      setMessage(error.message || 'Failed to delete');
+    } catch (err: any) {
+      setMessage(err.response?.data?.message || 'Failed to delete');
     }
   };
 
@@ -128,37 +120,29 @@ export default function AdminOutletsPage() {
     e.preventDefault();
     setMessage(null);
     try {
-      const res = await apiFetch<{ salespersons: string[] }>(
+      const { data: res } = await apiClient.post<{ salespersons: string[] }>(
         '/admin/company/salespersons',
-        {
-          method: 'POST',
-          body: JSON.stringify({ salesperson: newSalesperson }),
-        }
+        { salesperson: newSalesperson }
       );
       setMessage('Salesperson added');
       setCompanySalespersons(res.salespersons);
       setNewSalesperson('');
-    } catch (err) {
-        const error = err as Error
-      setMessage(error.message || 'Failed to add salesperson');
+    } catch (err: any) {
+      setMessage(err.response?.data?.message || 'Failed to add salesperson');
     }
   };
 
   const removeSalesperson = async (salesperson: string) => {
     setMessage(null);
     try {
-      const res = await apiFetch<{ salespersons: string[] }>(
+      const { data: res } = await apiClient.delete<{ salespersons: string[] }>(
         '/admin/company/salespersons',
-        {
-          method: 'DELETE',
-          body: JSON.stringify({ salesperson }),
-        }
+        { data: { salesperson } }
       );
       setMessage('Salesperson removed');
       setCompanySalespersons(res.salespersons);
-    } catch (err) {
-        const error = err as Error
-      setMessage(error.message || 'Failed to remove salesperson');
+    } catch (err: any) {
+      setMessage(err.response?.data?.message || 'Failed to remove salesperson');
     }
   };
 
@@ -169,7 +153,7 @@ export default function AdminOutletsPage() {
         <Card>
           <div className="flex items-center justify-between">
             <h1 className="text-lg font-semibold">Outlets</h1>
-            {isOwner && (
+            {can('outlets:create') && (
               <button
                 onClick={() => setShowCreateForm(!showCreateForm)}
                 className="rounded-md bg-black px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-800"
@@ -179,7 +163,7 @@ export default function AdminOutletsPage() {
             )}
           </div>
 
-          {isOwner && showCreateForm && (
+          {can('outlets:create') && showCreateForm && (
             <form className="mt-4 grid gap-3 sm:grid-cols-2" onSubmit={create}>
               <input
                 placeholder="Name"
@@ -248,7 +232,7 @@ export default function AdminOutletsPage() {
                     <div>Cash box ₹{o.cashBox.toLocaleString()}</div>
                   </div>
                 </div>
-                {isOwner && (
+                {can('outlets:update') && (
                   <div className="mt-4 flex gap-2">
                     <button
                       onClick={() => handleEdit(o)}
@@ -269,7 +253,7 @@ export default function AdminOutletsPage() {
           </div>
         </Card>
 
-        {isOwner && (
+        {can('company:read:salespersons') && (
           <Card>
             <h1 className="text-lg font-semibold">Company Salespersons</h1>
             <form className="mt-3 flex gap-2" onSubmit={addSalesperson}>

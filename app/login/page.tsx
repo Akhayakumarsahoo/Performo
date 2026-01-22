@@ -3,16 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { apiFetch, setAuth, getAuth } from '@/lib/api';
-import { roleToDefaultPath } from '@/lib/useAuth';
+import apiClient from '@/lib/apiClient';
+import { setAuth, getAuth, useAuth } from '@/lib/auth';
+import { User } from '@/lib/user';
 
 type LoginResponse = {
   accessToken: string;
   refreshToken: string;
-  user: {
-    id: string;
-    name: string;
-  };
+  user: User;
 };
 
 export default function LoginPage() {
@@ -21,29 +19,28 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const auth = useAuth();
 
   // Redirect if already authenticated
   useEffect(() => {
-    const auth = getAuth();
     if (auth?.user) {
-      router.replace(roleToDefaultPath());
+      router.replace(auth.defaultPath);
     }
-  }, [router]);
+  }, [router, auth]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
     try {
-      const data = await apiFetch<LoginResponse>('/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({ email, password }),
+      const { data } = await apiClient.post<LoginResponse>('/auth/login', {
+        email,
+        password,
       });
       setAuth(data);
-      router.push(roleToDefaultPath());
-    } catch (err) {
-      const error = err as Error
-      setError(error.message || 'Login failed');
+      router.push(useAuth()!.defaultPath);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Login failed');
     } finally {
       setLoading(false);
     }
