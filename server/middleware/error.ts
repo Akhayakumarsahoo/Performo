@@ -1,10 +1,10 @@
-import { NextFunction, Request, Response } from "express";
+import { Request, Response } from "express";
 import { ZodError } from "zod";
 import { AppError } from "../utils/errors";
 import logger from "../utils/logger";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function errorHandler(err: any, _req: Request, res: Response, _next: NextFunction) {
+export function errorHandler(err: any, _req: Request, res: Response) {
   if (err instanceof AppError) {
     logger.warn({ err }, "AppError");
     return res.status(err.statusCode).json({ message: err.message });

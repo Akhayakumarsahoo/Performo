@@ -21,13 +21,14 @@ declare module "express-serve-static-core" {
   interface Request {
     user?: AuthUser;
     outlet?: OutletAuth;
+    cookies: Record<string, string>;
   }
 }
 
 export function requireAuth(req: Request, res: Response, next: NextFunction) {
   const bearer = req.headers.authorization;
   const token = bearer?.startsWith("Bearer ") ? bearer.slice(7) : undefined;
-  const fallbackToken = (req as any).cookies?.accessToken as string | undefined;
+  const fallbackToken = req.cookies?.accessToken;
   const jwtToken = token || fallbackToken;
 
   if (!jwtToken) {
@@ -61,7 +62,7 @@ export function requireOutletAuth(
 ) {
   const bearer = req.headers.authorization;
   const token = bearer?.startsWith("Bearer ") ? bearer.slice(7) : undefined;
-  const fallbackToken = (req as any).cookies?.outletToken as string | undefined;
+  const fallbackToken = req.cookies?.outletToken;
   const jwtToken = token || fallbackToken;
 
   if (!jwtToken) {
@@ -100,7 +101,7 @@ export const auth = async (): Promise<AuthUser> => {
   try {
     const decoded = jwt.verify(jwtToken, env.JWT_SECRET) as AuthUser;
     return decoded;
-  } catch (err) {
+  } catch {
     throw new Error("Invalid or expired token");
   }
 };

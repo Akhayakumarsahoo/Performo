@@ -40,34 +40,35 @@ export default function AdminOutletsPage() {
     (permission: keyof typeof PERMISSIONS) => {
       return auth?.user && hasPermission(auth.user.role as UserRole, permission);
     },
-    [auth?.user]
+    [auth]
   );
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const { data: outlets } = await apiClient.get<Outlet[]>('/admin/outlets');
-      setItems(outlets);
-      if (can('company:read:salespersons')) {
-        const { data: company } = await apiClient.get<{ salespersons: string[] }>(
-          '/admin/company/salespersons'
-        );
-        setCompanySalespersons(company.salespersons || []);
-      }
-    } catch (err) {
-      setMessage(
-        (err as { response?: { data?: { message: string } } })?.response?.data?.message ||
-          'Failed to load data'
-      );
-    }
-    setLoading(false);
-  }, [can]);
-
   useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      try {
+        const { data: outlets } = await apiClient.get<Outlet[]>(
+          '/admin/outlets'
+        );
+        setItems(outlets);
+        if (can('company:read:salespersons')) {
+          const { data: company } = await apiClient.get<{
+            salespersons: string[];
+          }>('/admin/company/salespersons');
+          setCompanySalespersons(company.salespersons || []);
+        }
+      } catch (err) {
+        setMessage(
+          (err as { response?: { data?: { message: string } } })?.response?.data
+            ?.message || 'Failed to load data'
+        );
+      }
+      setLoading(false);
+    };
     if (auth?.user) {
       load();
     }
-  }, [auth?.user, load]);
+  }, [auth, can]);
 
   const create = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,7 +85,7 @@ export default function AdminOutletsPage() {
         password: '',
       });
       setShowCreateForm(false);
-      await load();
+      // await load();
     } catch (err) {
       setMessage(
         (err as { response?: { data?: { message: string } } })?.response?.data?.message || 'Failed'
@@ -105,7 +106,7 @@ export default function AdminOutletsPage() {
       await apiClient.patch(`/admin/outlets/${_id}`, updateData);
       setMessage('Outlet updated');
       setEditingOutlet(null);
-      await load();
+      // await load();
     } catch (err) {
       setMessage(
         (err as { response?: { data?: { message: string } } })?.response?.data?.message ||
@@ -121,7 +122,7 @@ export default function AdminOutletsPage() {
       await apiClient.delete(`/admin/outlets/${outletToDelete._id}`);
       setMessage('Outlet deleted');
       setOutletToDelete(null);
-      await load();
+      // await load();
     } catch (err) {
       setMessage(
         (err as { response?: { data?: { message: string } } })?.response?.data?.message ||

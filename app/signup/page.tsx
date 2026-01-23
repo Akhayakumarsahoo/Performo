@@ -64,7 +64,7 @@ export default function SignupPage() {
       <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-sm">
         <h1 className="text-2xl font-semibold mb-2">Performo Signup</h1>
         <p className="text-sm text-slate-500 mb-6">
-          Create your company account. You'll be set up as the admin.
+          Create your company account. You&apos;ll be set up as the admin.
         </p>
         <form className="space-y-4" onSubmit={onSubmit}>
           <div>
