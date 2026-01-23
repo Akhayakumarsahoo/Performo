@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import NavBar from "@/components/NavBar";
 import { Card } from "@/components/Card";
 import { apiFetch, getAuth, setAuth } from "@/lib/api";
@@ -10,19 +10,10 @@ export default function EditProfilePage() {
   useRequireAuth();
   const auth = getAuth();
   const [form, setForm] = useState({
-    name: "",
-    companyName: "",
+    name: auth?.user?.name || "",
+    companyName: auth?.user?.company?.name || "",
   });
   const [message, setMessage] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (auth) {
-      setForm({
-        name: auth.user.name,
-        companyName: auth.user.company?.name || "",
-      });
-    }
-  }, [auth]);
 
   const update = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,8 +48,11 @@ export default function EditProfilePage() {
       }
 
       setMessage("Profile updated successfully!");
-    } catch (err: any) {
-      setMessage(err.message || "Failed to update profile");
+    } catch (err) {
+      setMessage(
+        (err as { response?: { data?: { message: string } } })?.response?.data?.message ||
+          "Failed to update profile"
+      );
     }
   };
 

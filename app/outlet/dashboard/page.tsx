@@ -42,7 +42,7 @@ const OutletDashboardPage = () => {
   const { user } = useAuthState();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [dateRange, setDateRange] = useState({
+  const [dateRange] = useState({
     startDate: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0],
     endDate: new Date().toISOString().split('T')[0],
   });

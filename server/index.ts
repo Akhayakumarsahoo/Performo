@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import { env } from '@/server/config/env';
+import env from '@/server/config/env'; // Corrected import
 import { connectDB } from '@/server/config/db';
 import { logger } from '@/server/utils/logger';
 import { errorHandler } from '@/server/middleware/error';

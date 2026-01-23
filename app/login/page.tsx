@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import apiClient from '@/lib/apiClient';
-import { setAuth, getAuth, useAuth } from '@/lib/auth';
+import { setAuth, useAuth } from '@/lib/auth';
 import { User } from '@/lib/user';
 
 type LoginResponse = {
@@ -38,9 +38,12 @@ export default function LoginPage() {
         password,
       });
       setAuth(data);
-      router.push(useAuth()!.defaultPath);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed');
+      router.push(auth!.defaultPath);
+    } catch (err) {
+      setError(
+        (err as { response?: { data?: { message: string } } })?.response?.data?.message ||
+          'Login failed'
+      );
     } finally {
       setLoading(false);
     }

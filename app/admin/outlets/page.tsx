@@ -36,9 +36,12 @@ export default function AdminOutletsPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
 
-  const can = (permission: keyof typeof PERMISSIONS) => {
-    return auth?.user && hasPermission(auth.user.role as UserRole, permission);
-  };
+  const can = useCallback(
+    (permission: keyof typeof PERMISSIONS) => {
+      return auth?.user && hasPermission(auth.user.role as UserRole, permission);
+    },
+    [auth?.user]
+  );
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -51,11 +54,14 @@ export default function AdminOutletsPage() {
         );
         setCompanySalespersons(company.salespersons || []);
       }
-    } catch (err: any) {
-      setMessage(err.response?.data?.message || 'Failed to load data');
+    } catch (err) {
+      setMessage(
+        (err as { response?: { data?: { message: string } } })?.response?.data?.message ||
+          'Failed to load data'
+      );
     }
     setLoading(false);
-  }, [auth?.user?.role]);
+  }, [can]);
 
   useEffect(() => {
     if (auth?.user) {
@@ -79,8 +85,10 @@ export default function AdminOutletsPage() {
       });
       setShowCreateForm(false);
       await load();
-    } catch (err: any) {
-      setMessage(err.response?.data?.message || 'Failed');
+    } catch (err) {
+      setMessage(
+        (err as { response?: { data?: { message: string } } })?.response?.data?.message || 'Failed'
+      );
     }
   };
 
@@ -98,8 +106,11 @@ export default function AdminOutletsPage() {
       setMessage('Outlet updated');
       setEditingOutlet(null);
       await load();
-    } catch (err: any) {
-      setMessage(err.response?.data?.message || 'Failed to update');
+    } catch (err) {
+      setMessage(
+        (err as { response?: { data?: { message: string } } })?.response?.data?.message ||
+          'Failed to update'
+      );
     }
   };
 
@@ -111,8 +122,11 @@ export default function AdminOutletsPage() {
       setMessage('Outlet deleted');
       setOutletToDelete(null);
       await load();
-    } catch (err: any) {
-      setMessage(err.response?.data?.message || 'Failed to delete');
+    } catch (err) {
+      setMessage(
+        (err as { response?: { data?: { message: string } } })?.response?.data?.message ||
+          'Failed to delete'
+      );
     }
   };
 
@@ -127,8 +141,11 @@ export default function AdminOutletsPage() {
       setMessage('Salesperson added');
       setCompanySalespersons(res.salespersons);
       setNewSalesperson('');
-    } catch (err: any) {
-      setMessage(err.response?.data?.message || 'Failed to add salesperson');
+    } catch (err) {
+      setMessage(
+        (err as { response?: { data?: { message: string } } })?.response?.data?.message ||
+          'Failed to add salesperson'
+      );
     }
   };
 
@@ -141,8 +158,11 @@ export default function AdminOutletsPage() {
       );
       setMessage('Salesperson removed');
       setCompanySalespersons(res.salespersons);
-    } catch (err: any) {
-      setMessage(err.response?.data?.message || 'Failed to remove salesperson');
+    } catch (err) {
+      setMessage(
+        (err as { response?: { data?: { message: string } } })?.response?.data?.message ||
+          'Failed to remove salesperson'
+      );
     }
   };
 

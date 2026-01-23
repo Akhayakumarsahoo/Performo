@@ -201,7 +201,7 @@ const SalesEntryPage = () => {
                 <Controller
                   name="actualPayments.cash"
                   control={control}
-                  render={({ field }) => <input {...field} type="number" step="0.01" className="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-slate-400 focus:ring focus:ring-slate-200 focus:ring-opacity-50" onChange={e => field.onChange(.target.value) || 0)} />}
+                  render={({ field }) => <input {...field} type="number" step="0.01" className="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-slate-400 focus:ring focus:ring-slate-200 focus:ring-opacity-50" onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />}
                 />
               </div>
               <div>
