@@ -1,4 +1,4 @@
-import { Types } from "mongoose";
+import { Types, ClientSession } from "mongoose";
 import { CashTransaction } from "../models/CashTransaction";
 import { Outlet } from "../models/Outlet";
 
@@ -47,7 +47,7 @@ export async function createCashTransaction(data: CashTransactionData) {
 /**
  * Calculate and update outlet cash box balance from all approved transactions
  */
-export async function updateCashBoxBalance(outletId: string, session?: any) {
+export async function updateCashBoxBalance(outletId: string, session?: ClientSession) {
   // Calculate total from all approved transactions
   const result = await CashTransaction.aggregate([
     { 
@@ -80,7 +80,7 @@ export async function updateCashBoxBalance(outletId: string, session?: any) {
  * Get current cash box balance for an outlet
  */
 export async function getCashBoxBalance(outletId: string): Promise<number> {
-  const outlet = await Outlet.findById(outletId).select('cashBox').lean();
+  const outlet = await Outlet.findById(outletId).select('cashBox').lean() as { cashBox?: number } | null;
   return outlet?.cashBox || 0;
 }
 
@@ -113,7 +113,7 @@ export async function getCashTransactions(
 export async function validateCashTransaction(
   outletId: string, 
   amount: number, 
-  type: "expense" | "withdrawal"
+
 ): Promise<{ valid: boolean; currentBalance: number; newBalance: number }> {
   const currentBalance = await getCashBoxBalance(outletId);
   const newBalance = currentBalance + amount; // amount should be negative for expenses/withdrawals

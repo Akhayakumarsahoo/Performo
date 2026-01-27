@@ -4,6 +4,8 @@ export interface IOutlet extends Document {
   name: string;
   companyId: Schema.Types.ObjectId;
   cashInHand: number;
+  monthlyTarget?: number;
+  incentiveSlabs?: { percent: number; bonus: number }[];
 }
 
 const OutletSchema = new Schema<IOutlet>(
@@ -15,6 +17,4 @@ const OutletSchema = new Schema<IOutlet>(
   { timestamps: true }
 );
 
-const Outlet = models.Outlet || model<IOutlet>('Outlet', OutletSchema);
-
-export default Outlet;
+export const Outlet = models.Outlet || model<IOutlet>('Outlet', OutletSchema);

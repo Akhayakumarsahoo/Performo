@@ -1,4 +1,5 @@
 import { Types } from "mongoose";
+import { UserRole } from "./roles";
 
 export interface IOutlet {
   _id: Types.ObjectId | string;
@@ -31,4 +32,13 @@ export interface ICashTransaction {
   approved: boolean;
   approvedBy?: Types.ObjectId | string;
   rejectionReason?: string;
+}
+export interface User {
+  _id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  companyId: string;
+  outletId?: string;
+  active: boolean;
 }

@@ -2,7 +2,7 @@ import { Router } from "express";
 import { requireAuth } from "../middleware/auth";
 import { Outlet } from "../models/Outlet";
 import { DailySales } from "../models/DailySales";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 
 const router = Router();
 
@@ -44,11 +44,11 @@ router.post("/sales", async (req, res, next) => {
         const { date, totalSales, payments, actualCash, enteredByName } = req.body;
         const today = new Date().toISOString().slice(0, 10);
 
-        if (date !== today && req.user.role !== 'manager' && req.user.role !== 'admin') {
+        if (date !== today && (req.user!.role as string) !== 'manager' && (req.user!.role as string) !== 'admin') {
             return res.status(400).json({ message: "You can only submit sales for the current date." });
         }
 
-        const outletId = req.user.outletId;
+        const outletId = req.user!.outletId;
 
         const sales = new DailySales({
             date,
@@ -57,7 +57,7 @@ router.post("/sales", async (req, res, next) => {
             actualCash,
             enteredByName,
             outletId,
-            companyId: req.user.companyId,
+            companyId: req.user!.companyId,
         });
 
         await sales.save();
@@ -76,7 +76,7 @@ router.get("/dashboard", async (req, res, next) => {
 
     const outlet = await Outlet.findOne({
       _id: req.user.outletId,
-      companyId: req.user.companyId,
+      companyId: req.user!.companyId,
     }).lean();
 
     if (!outlet) {

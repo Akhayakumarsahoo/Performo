@@ -3,9 +3,9 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { dbConnect } from '@/lib/db';
-import Outlet from '@/models/Outlet';
-import DailySales from '@/models/DailySales';
-import CashTransaction from '@/models/CashTransaction';
+import Outlet from '../../../../server/models/Outlet';
+import DailySales from '../../../../server/models/DailySales';
+import CashTransaction from '../../../../server/models/CashTransaction';
 
 export async function GET(req: Request) {
   const session = await getServerSession(authOptions);

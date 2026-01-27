@@ -2,7 +2,7 @@ import { Router } from "express";
 import { requireAuth } from "../middleware/auth";
 import { computeOutletStats, getSalesReport } from "../services/performance";
 import { DailySales } from "../models/DailySales";
-import { Outlet } from "../models/Outlet";
+import { IOutlet, Outlet } from "../models/Outlet";
 
 const router = Router();
 
@@ -12,7 +12,7 @@ router.use(requireAuth);
 router.get("/manager", async (req, res, next) => {
   try {
     // Owner sees all outlets in their company
-    const outlets = await Outlet.find({ companyId: req.user!.companyId, active: true }).lean();
+    const outlets = await Outlet.find({ companyId: req.user!.companyId, active: true }).lean() as unknown as IOutlet[];
     const promises = outlets.map((outlet) => computeOutletStats(req.user!.companyId, outlet._id.toString()));
     const stats = (await Promise.all(promises)).filter(Boolean);
     const pendingApprovals = await DailySales.countDocuments({
@@ -28,7 +28,7 @@ router.get("/manager", async (req, res, next) => {
 router.get("/admin", async (req, res, next) => {
   try {
     const { startDate, endDate } = req.query;
-    const outlets = await Outlet.find({ companyId: req.user!.companyId, active: true }).lean();
+    const outlets = await Outlet.find({ companyId: req.user!.companyId, active: true }).lean() as unknown as IOutlet[];
     const stats = (
       await Promise.all(
         outlets.map((o) =>
@@ -42,7 +42,8 @@ router.get("/admin", async (req, res, next) => {
       )
     ).filter(Boolean);
     const totals = stats.reduce(
-      (acc, s: any) => {
+      (acc, s) => {
+        if (!s) return acc;
         acc.target += s.target;
         acc.achieved += s.achieved;
         return acc;

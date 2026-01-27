@@ -81,7 +81,8 @@ export async function computeOutletStats(
   date: Date = new Date(),
   endDate?: Date
 ): Promise<OutletStats | null> {
-  const outlet = await Outlet.findOne({ _id: outletId, companyId });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const outlet = (await Outlet.findOne({ _id: outletId, companyId })) as any;
   if (!outlet) return null;
 
   const { start, end } = getMonthRange(date);

@@ -29,6 +29,4 @@ const CashTransactionSchema = new Schema<ICashTransaction>(
   { timestamps: true }
 );
 
-const CashTransaction = models.CashTransaction || model<ICashTransaction>('CashTransaction', CashTransactionSchema);
-
-export default CashTransaction;
+export const CashTransaction = models.CashTransaction || model<ICashTransaction>('CashTransaction', CashTransactionSchema);

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { clearAuth, getAuth } from "@/lib/api";
+import { clearAuth, getAuth } from "@/lib/auth";
 
 const ownerLinks = [
   { href: "/dashboard", label: "Dashboard" },

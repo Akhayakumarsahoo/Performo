@@ -14,7 +14,7 @@ router.put("/", async (req, res, next) => {
       return res.status(400).json({ message: "Name is required" });
     }
     const user = await User.findByIdAndUpdate(
-      req.user!._id,
+      req.user!.userId,
       { $set: { name } },
       { new: true }
     ).lean();

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { dbConnect } from '@/lib/db';
-import User from '@/models/User';
+import { User } from '@/server/models/User';
 import { USER_ROLES } from '@/lib/roles';
 
 export async function GET() {

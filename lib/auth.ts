@@ -1,5 +1,5 @@
 import { roleToDefaultPath } from "./utils";
-import { User } from "./user";
+import { User } from "./definitions";
 
 type Auth = {
   accessToken: string;
@@ -13,7 +13,14 @@ export function setAuth(auth: Auth) {
   localStorage.setItem("user", JSON.stringify(auth.user));
 }
 
+export function clearAuth() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("refreshToken");
+  localStorage.removeItem("user");
+}
+
 export function getAuth(): Auth | null {
+  if (typeof window === "undefined") return null;
   const token = localStorage.getItem("token");
   const refreshToken = localStorage.getItem("refreshToken");
   const userString = localStorage.getItem("user");

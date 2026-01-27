@@ -7,8 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "api": "tsx --tsconfig server/tsconfig.json server/index.ts",
-    "api:dev": "tsx watch --tsconfig server/tsconfig.json server/index.ts"
+    "api": "tsx --tsconfig server/tsconfig.server.json server/index.ts",
+    "api:dev": "tsx watch --tsconfig server/tsconfig.server.json server/index.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

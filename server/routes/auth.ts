@@ -21,7 +21,7 @@ router.post("/login", validateBody(loginSchema), async (req, res, next) => {
     const { email, password } = req.body;
 
     // First, check if the user is a company owner
-    let user = await Company.findOne({ email });
+    const user = await Company.findOne({ email });
     if (user) {
       if (!user.passwordHash) {
         return res.status(401).json({ message: "Invalid credentials" });
@@ -81,7 +81,7 @@ router.post("/login", validateBody(loginSchema), async (req, res, next) => {
     const authUser = {
       userId: regularUser._id.toString(),
       companyId: String(regularUser.companyId),
-      role: regularUser.role, // Include the user's role
+      role: regularUser.role as "owner" | "manager", // Include the user's role
     };
 
     const accessToken = signAccessToken(authUser);
@@ -138,7 +138,7 @@ router.post("/signup", validateBody(signupSchema), async (req, res, next) => {
     const authUser = {
       userId: company._id.toString(),
       companyId: company._id.toString(),
-      role: "owner",
+      role: "owner" as "owner" | "manager",
     };
 
     const accessToken = signAccessToken(authUser);
@@ -183,7 +183,7 @@ router.post("/signup", validateBody(signupSchema), async (req, res, next) => {
 router.post("/refresh", validateBody(refreshSchema), async (req, res, next) => {
   try {
     const { refreshToken } = req.body;
-    const decoded = verifyRefreshToken(refreshToken);
+    verifyRefreshToken(refreshToken);
     const session = await Session.findOne({
       token: refreshToken,
       revoked: false,
@@ -193,7 +193,8 @@ router.post("/refresh", validateBody(refreshSchema), async (req, res, next) => {
       return res.status(401).json({ message: "Session expired" });
     }
 
-    const user = session.userId;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const user = session.userId as any;
     if (!user || !user.active) {
       return res.status(401).json({ message: "User inactive" });
     }
